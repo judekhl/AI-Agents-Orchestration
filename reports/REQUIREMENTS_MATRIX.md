@@ -1,7 +1,7 @@
 # REQUIREMENTS MATRIX — Assignment 05
 # Running a Massive LLM Locally: AirLLM, Quantization and Performance Benchmarking
 # Target grade: 90+
-# Last updated: 2026-06-23
+# Last updated: 2026-06-23 (warm-up baseline complete)
 # Rule: Status stays NOT_STARTED until evidence file exists in the repo. DONE requires real data.
 
 ---
@@ -54,10 +54,10 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| C1 | Direct / naive local baseline run is attempted | Baseline section | `scripts/baseline_run.py` exists AND `results/raw/baseline_metrics.json` or `results/raw/baseline_failure.txt` exists | `IN_PROGRESS` | `src/run_baseline.py` exists with full instrumentation (RamSampler, TTFT timing, failure logging). Result JSON not yet generated — must run the script. | Baseline reference point missing; nothing to compare against | Critical |
-| C2 | Outcome documented honestly: success, OOM, excessive slowness, or failure | Baseline section | `results/raw/baseline_metrics.json` (if success) OR `results/raw/baseline_failure.txt` with error log and explanation | `NOT_STARTED` | Capture `traceback`, `MemoryError`, or timing data; do not fabricate success if it OOMed | Negative results presented without documentation look fabricated | Critical |
-| C3 | Baseline metrics saved to raw result files (not only in README) | Baseline section | `results/raw/baseline_metrics.json` containing TTFT, TPOT, throughput, RAM peak, runtime | `NOT_STARTED` | Instrument script with `tracemalloc` / `psutil` memory sampling and `time.perf_counter` timing | Cannot regenerate graphs from real data | High |
-| C4 | Bottleneck identified and explained: RAM, VRAM, CPU compute, or disk I/O | Baseline section | README section "Baseline Bottleneck Analysis" + supporting data (e.g., `htop` screenshot or `psutil` memory trace) | `NOT_STARTED` | During baseline run, sample RAM every second; identify where limit was hit; connect to lecture concepts (memory-bound vs compute-bound) | Key conceptual analysis missing | High |
+| C1 | Direct / naive local baseline run is attempted | Baseline section | `scripts/baseline_run.py` exists AND `results/raw/baseline_metrics.json` or `results/raw/baseline_failure.txt` exists | `IN_PROGRESS` | `src/run_baseline.py` exists. Warm-up baseline (Qwen2.5-0.5B) COMPLETE: `results/raw/baseline_warmup_metrics.json` ✓. Stress baseline (OPT-6.7B OOM) still pending — `results/raw/baseline_stress_failure.json` not yet generated. | Baseline reference point missing; nothing to compare against | Critical |
+| C2 | Outcome documented honestly: success, OOM, excessive slowness, or failure | Baseline section | `results/raw/baseline_metrics.json` (if success) OR `results/raw/baseline_failure.txt` with error log and explanation | `IN_PROGRESS` | Warm-up outcome: SUCCESS — `results/raw/baseline_warmup_metrics.json` contains real metrics (6.20 tok/s, 2.73 GB RAM, no OOM). Stress outcome: PENDING — expected MemoryError or swap. Will save to `results/raw/baseline_stress_failure.json`. | Negative results presented without documentation look fabricated | Critical |
+| C3 | Baseline metrics saved to raw result files (not only in README) | Baseline section | `results/raw/baseline_metrics.json` containing TTFT, TPOT, throughput, RAM peak, runtime | `IN_PROGRESS` | Warm-up: `results/raw/baseline_warmup_metrics.json` ✓ — contains ttft_seconds, throughput_tokens_per_sec, peak_ram_gb, total_runtime_seconds, total_output_tokens. TPOT is null (approximation artefact). Stress metrics file pending. | Cannot regenerate graphs from real data | High |
+| C4 | Bottleneck identified and explained: RAM, VRAM, CPU compute, or disk I/O | Baseline section | README section "Baseline Bottleneck Analysis" + supporting data (e.g., `htop` screenshot or `psutil` memory trace) | `IN_PROGRESS` | README Section 4 "Bottleneck Analysis" written: warm-up is memory-bandwidth-bound (2.73 GB used, 6.20 tok/s); stress expected to hit RAM ceiling (14 GB FP16 vs 8.22 GB). Full analysis pending stress run. | Key conceptual analysis missing | High |
 
 ---
 
@@ -177,22 +177,22 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (environment setup — all packages installed)
+Last updated: 2026-06-23 (warm-up baseline complete — Qwen2.5-0.5B: 6.20 tok/s, 2.73 GB RAM)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
-| A — Repository | 7 | 0 | 5 | 2 | 0 | A3 (README needs real data), A6 (verify before final push) |
-| B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs baseline OOM evidence) |
-| C — Baseline | 4 | 3 | 1 | 0 | 0 | C1 (script ready, not run), C2, C3 |
+| A — Repository | 7 | 0 | 5 | 2 | 0 | A3 (README real data partial — warm-up done), A6 (verify before final push) |
+| B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs stress OOM evidence) |
+| C — Baseline | 4 | 0 | 4 | 0 | 0 | C1 (warm-up done, stress pending), C2, C3 (partial) |
 | D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script ready, not run), D2 |
 | E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script ready, not run) |
-| F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 |
+| F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 (need all scenarios) |
 | G — Graphs | 9 | 9 | 0 | 0 | 0 | G1 |
 | H — Economics | 9 | 9 | 0 | 0 | 0 | — |
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
 | K — Engineering | 8 | 3 | 5 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **54** | **14** | **6** | **0** | **—** |
+| **TOTAL** | **74** | **51** | **17** | **6** | **0** | **—** |
 
 ---
 
@@ -223,16 +223,16 @@ Last updated: 2026-06-23 (environment setup — all packages installed)
 ## CURRENT STATUS: NOT 90+ READY
 
 **DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)  
-**IN_PROGRESS: 14 / 74 requirements** (K7 added — 6 incremental commits exist)
-**NOT_STARTED: 54 / 74 requirements**
+**IN_PROGRESS: 17 / 74 requirements** (C1–C4 all in progress; K7 — 7 incremental commits now)
+**NOT_STARTED: 51 / 74 requirements**
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD, 38.44 GB free.
-Critical finding: 8.22 GB RAM means naive 7B model load will OOM — expected negative result.
-AirLLM and GGUF Q4 are the viable paths.
+Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS (2026-06-23).
+Critical finding confirmed: stress model (OPT-6.7B, ~14 GB FP16) will OOM — run pending.
 
 **NOT 90+ ready.** Remaining blockers:
-- Baseline, AirLLM, and quantization experiments not yet run (no results/raw/ data files)
+- Stress baseline (OPT-6.7B OOM evidence) not yet run
+- AirLLM and quantization experiments not yet run
 - All figures/*.png not yet generated
-- README sections B2/B3, all of Sections C–K still contain _TBD_
+- README Sections 5–13 still contain _TBD_
 - Economic analysis, extension, and self-assessment not written
-- Model not yet selected or downloaded

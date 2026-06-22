@@ -1,0 +1,23 @@
+{
+  "scenario": "baseline",
+  "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+  "timestamp_utc": "2026-06-22T23:44:15Z",
+  "metrics": {
+    "ttft_seconds": 10.3307,
+    "tpot_ms": null,
+    "throughput_tokens_per_sec": 6.1951,
+    "total_runtime_seconds": 10.3307,
+    "total_output_tokens": 64,
+    "peak_ram_gb": 2.728,
+    "peak_vram_gb": null,
+    "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU",
+    "model_load_time_seconds": 208.464,
+    "n_input_tokens": 23,
+    "ttft_note": "Approximated as total runtime (no streaming hook). True TTFT \u2264 this value."
+  },
+  "extra": {
+    "prompt": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.",
+    "output_text": " Virtual memory is a technique used by operating systems to allow programs to access larger amounts of memory than are physically available on the system's physical memory. It does this by creating a separate \"virtual\" memory space that can be accessed by the program without having to worry about the actual physical memory being allocated.\nPaging is one",
+    "output_quality_notes": "TODO: manual assessment after experiment"
+  }
+}

@@ -5,9 +5,9 @@
 **Course:** [Course name]  
 **Repo:** https://github.com/judekhl/AI-Agents-Orchestration
 
-> **Status: SCAFFOLD — experiments not yet run.**
-> All section headers are in place. Numbers, graphs, and analysis will be added
-> after real measurements are complete. Do not read _TBD_ entries as results.
+> **Status: IN PROGRESS — warm-up baseline complete; stress baseline, AirLLM, quantization, graphs, and analysis pending.**
+> Warm-up numbers in Section 4 and Section 7 are real measured values from `results/raw/baseline_warmup_metrics.json`.
+> All other _TBD_ entries are not yet run. Do not read them as results.
 
 ---
 
@@ -231,27 +231,46 @@ python src/plot_results.py --input-dir results/raw/ \
 ## 4. Baseline Experiment
 
 <!-- REQUIREMENT C1, C2, C3, C4 -->
-<!-- TODO: After running src/run_baseline.py, fill in this section.
-     Report honestly — OOM and failure are valid results if documented. -->
 
 **Script:** [`src/run_baseline.py`](src/run_baseline.py)  
-**Config:** [`experiments/configs/default_config.json`](experiments/configs/default_config.json)  
-**Outcome:** _TBD — Success / OOM / Excessive slowness / Failure_
+**Config:** [`experiments/configs/default_config.json`](experiments/configs/default_config.json)
 
-### Raw Evidence
+### Warm-up Baseline — `Qwen/Qwen2.5-0.5B-Instruct` (COMPLETE)
 
-- Success case: [`results/raw/baseline_metrics.json`](results/raw/baseline_metrics.json) — _not yet generated_
-- Failure case: [`results/raw/baseline_failure.txt`](results/raw/baseline_failure.txt) — _not yet generated_
+**Scenario:** Standard HuggingFace `transformers`, CPU-only, no AirLLM, no quantization
+**Outcome:** SUCCESS — model loaded and generated 64 tokens without OOM
+
+| Metric | Value |
+|---|---|
+| Throughput | 6.20 tok/s |
+| Peak RAM | 2.73 GB |
+| Output tokens | 64 |
+| TTFT (approx) | 10.33 s |
+| Model load time | 208.5 s (first run — includes ~1 GB model download) |
+| TPOT | N/A (TTFT approximated as total runtime — no streaming hook; true TTFT ≤ 10.33 s) |
+| OOM | No |
+
+**Evidence:**
+- [`results/raw/baseline_warmup_metrics.json`](results/raw/baseline_warmup_metrics.json) ✓
+- [`results/processed/baseline_warmup_summary.md`](results/processed/baseline_warmup_summary.md) ✓
+
+**Output snippet (64 tokens):**
+> Virtual memory is a technique used by operating systems to allow programs to access larger amounts of memory than are physically available on the system's physical memory. It does this by creating a separate "virtual" memory space that can be accessed by the program without having to worry about the actual physical memory being allocated. Paging is one…
+
+### Stress Baseline — `facebook/opt-6.7b` (PENDING)
+
+**Scenario:** Same script, 6.7B FP16 model (~14 GB RAM required vs 8.22 GB available)
+**Expected outcome:** MemoryError or OS-induced swap making inference unusably slow
+
+- Raw evidence: `results/raw/baseline_stress_failure.json` — _not yet generated_
 
 ### Bottleneck Analysis
 
 <!-- REQUIREMENT C4, I10 -->
-<!-- TODO: Identify the limiting resource. Connect to lecture concepts. -->
 
-**Bottleneck identified:** _TBD (RAM / CPU compute / Disk I/O)_
+**Warm-up model (0.5B):** Memory-bandwidth-bound on CPU. RAM ceiling is not the limiting factor (2.73 GB used vs 8.22 GB available). Throughput (6.20 tok/s) reflects the CPU's ability to stream ~1 GB of weights per decode pass.
 
-_Analysis: TBD — will explain whether this is compute-bound or memory-bound,
-referencing peak RAM from the metrics file and CPU utilization observations._
+**Stress model (6.7B):** Expected to hit the RAM ceiling: 14 GB FP16 weights vs 8.22 GB available. OOM or catastrophic OS swap is the expected result. This motivates AirLLM (layer-by-layer paging) and GGUF quantization (~4× compression) as the two mitigations studied in Sections 5–6.
 
 ---
 
@@ -339,12 +358,15 @@ noticeably degrades, with example output comparisons._
 
 | Scenario | TTFT (s) | TPOT (ms/tok) | Throughput (tok/s) | Peak RAM (GB) | Peak VRAM | Runtime (s) | Power est. (W) |
 |---|---|---|---|---|---|---|---|
-| Baseline | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
+| Baseline warm-up (Qwen2.5-0.5B) | 10.33 ¹ | N/A ¹ | 6.20 | 2.73 | N/A — no CUDA GPU | 10.33 | _TBD_ |
+| Baseline stress (OPT-6.7B) | OOM expected | OOM expected | OOM expected | OOM expected | N/A — no CUDA GPU | N/A | N/A |
 | AirLLM | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant FP32 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant FP16 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant Q8 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant Q4 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
+
+¹ TTFT approximated as total runtime (no streaming hook in current script). True TTFT ≤ 10.33 s. TPOT is undefined because decode_time = total_runtime − ttft_approx ≈ 0.
 
 **Evidence:** [`results/processed/summary_table.csv`](results/processed/summary_table.csv) — _not yet generated_
 
