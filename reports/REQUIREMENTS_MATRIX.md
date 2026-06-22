@@ -164,20 +164,20 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| K1 | Scripts are clean, runnable, and use argument parsing | Quality section | All `scripts/*.py` have `if __name__ == "__main__"` guard and `argparse` for configurable paths/params | `IN_PROGRESS` | All `src/*.py` files have `if __name__ == "__main__"` guard and `argparse`. Import of heavy deps (torch, transformers, airllm) is inside functions so modules are importable without packages installed. End-to-end runability not yet verified. | Grader cannot reproduce runs | High |
+| K1 | Scripts are clean, runnable, and use argument parsing | Quality section | All `scripts/*.py` have `if __name__ == "__main__"` guard and `argparse` for configurable paths/params | `IN_PROGRESS` | All `src/*.py` files have `if __name__ == "__main__"` guard and `argparse`. Import of heavy deps (torch, transformers, airllm) is inside functions so modules are importable without packages installed. `python -m compileall src/` passed for all 9 scripts (2026-06-23). End-to-end runability not yet verified — needs model download and inference run. | Grader cannot reproduce runs | High |
 | K2 | CLI and config files documented | Quality section | README "How to Reproduce" section with exact commands; any config files have inline comments | `IN_PROGRESS` | README "How to Reproduce" section has full command sequence. `configs/default_config.json` has `_comment` fields. `.env.example` has inline comments on every variable. Commands not yet end-to-end tested. | Reproducibility criterion fails | High |
 | K3 | Raw data saved separately from processed summaries | Quality section | `results/raw/` contains unmodified metric JSON files; `results/processed/` contains summary CSVs generated from raw | `IN_PROGRESS` | `results/raw/` and `results/processed/` directories created. All `src/run_*.py` scripts write exclusively to `results/raw/`. `src/plot_results.py` and `src/quality_eval.py` write to `results/processed/`. No files present yet. | Cannot audit data pipeline | High |
 | K4 | Graphs generated from raw data (not manually constructed) | Quality section | `scripts/generate_report.py` reads from `results/raw/` and writes to `figures/` and `results/processed/` | `IN_PROGRESS` | `src/plot_results.py` reads `results/raw/*_metrics.json`, generates 7 standard graphs + summary CSV to `figures/` and `results/processed/`. Idempotent (re-running overwrites). Not yet run — requires experiment data first. | Graphs cannot be verified | High |
 | K5 | README does not contain fabricated numbers | Quality section | All numbers in README trace to files in `results/raw/` | `NOT_STARTED` | Strict rule: never type a number in README without a corresponding raw file | Academic integrity violation | Critical |
 | K6 | Code handles failures gracefully (try/except, OOM handling, timeout) | Quality section | Scripts catch `MemoryError`, `RuntimeError`, `torch.cuda.OutOfMemoryError`; save partial results or failure log before exiting | `NOT_STARTED` | Wrap all model loading and inference in try/except blocks; always save whatever data was collected before crash | A crash loses all data; also hides interesting negative results | High |
-| K7 | Git commits show development process (not one-shot dump) | Quality section | `git log` shows incremental commits: setup → baseline → AirLLM → quantization → analysis → figures → README polish | `NOT_STARTED` | Commit after each meaningful step; write descriptive messages | One-shot commit suggests work was not done incrementally | Medium |
+| K7 | Git commits show development process (not one-shot dump) | Quality section | `git log` shows incremental commits: setup → baseline → AirLLM → quantization → analysis → figures → README polish | `IN_PROGRESS` | 6 incremental commits as of 2026-06-23: matrix, scaffold, hardware profiling, model selection, cache safety, environment setup. Experiment commits (baseline, AirLLM, quant, analysis, figures) still to come. | One-shot commit suggests work was not done incrementally | Medium |
 | K8 | Final self-score recommendation is justified with evidence | Quality section | README final section "Self-Assessment" listing each requirement with evidence pointer and honest score estimate | `NOT_STARTED` | Write last, after all evidence exists; cite actual file paths | Self-score without justification looks like grade inflation | Medium |
 
 ---
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (model selection commit)
+Last updated: 2026-06-23 (environment setup — all packages installed)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -191,8 +191,8 @@ Last updated: 2026-06-23 (model selection commit)
 | H — Economics | 9 | 9 | 0 | 0 | 0 | — |
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
-| K — Engineering | 8 | 4 | 4 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **55** | **13** | **6** | **0** | **—** |
+| K — Engineering | 8 | 3 | 5 | 0 | 0 | K5 |
+| **TOTAL** | **74** | **54** | **14** | **6** | **0** | **—** |
 
 ---
 
@@ -223,8 +223,8 @@ Last updated: 2026-06-23 (model selection commit)
 ## CURRENT STATUS: NOT 90+ READY
 
 **DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)  
-**IN_PROGRESS: 13 / 74 requirements**  
-**NOT_STARTED: 55 / 74 requirements**
+**IN_PROGRESS: 14 / 74 requirements** (K7 added — 6 incremental commits exist)
+**NOT_STARTED: 54 / 74 requirements**
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD, 38.44 GB free.
 Critical finding: 8.22 GB RAM means naive 7B model load will OOM — expected negative result.

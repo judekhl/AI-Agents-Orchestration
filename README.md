@@ -143,9 +143,18 @@ Python 3.10+
 > AirLLM's shard writes during inference may also conflict with OneDrive's background sync,
 > causing file-lock errors mid-experiment.
 
-### Step 0 — Create external cache folders (once, before any download)
+### Step 0 — Create external folders (once, before anything else)
+
+> This repository lives inside OneDrive. Storing the Python virtual environment
+> inside the repo would cause OneDrive to continuously sync thousands of small
+> `.py`/`.pyd`/`.dll` files from the venv, causing sync conflicts and slowdowns.
+> Both the venv and model caches must live outside the OneDrive tree.
 
 ```bat
+rem ── Python virtual environment (outside OneDrive) ──
+mkdir C:\ai-envs
+
+rem ── Model / cache directories (outside OneDrive) ──
 mkdir C:\ai-model-cache\hf
 mkdir C:\ai-model-cache\airllm-cache
 mkdir C:\ai-model-cache\airllm-shards
@@ -153,25 +162,29 @@ mkdir C:\ai-model-cache\gguf
 ```
 
 These paths are referenced by `.env` and `experiments/configs/default_config.json`.
-They live on the local `C:\` drive, outside OneDrive.
+All live on the local `C:\` drive, outside OneDrive.
 
-### Step 1 — Clone and install
+### Step 1 — Clone, set up venv, and install
 
 ```bash
 git clone https://github.com/judekhl/AI-Agents-Orchestration.git
 cd AI-Agents-Orchestration
 
-# Create and activate virtual environment
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux/macOS
+rem Create virtual environment OUTSIDE OneDrive (avoids syncing ~10 000 venv files)
+python -m venv C:\ai-envs\ai-agents-ex05
 
-# Install core + experiment dependencies
+rem Activate it
+C:\ai-envs\ai-agents-ex05\Scripts\activate
+
+rem Upgrade pip first
+python -m pip install --upgrade pip setuptools wheel
+
+rem Install core + experiment dependencies
 pip install -e ".[transformers,airllm,gguf,quality]"
 
-# Copy environment template — review and confirm cache paths before editing
+rem Copy environment template — confirm cache paths before editing
 copy .env.example .env
-# No token needed — all models are public
+rem No token needed — all models are public
 ```
 
 ### Step 2 — Run experiments in order
