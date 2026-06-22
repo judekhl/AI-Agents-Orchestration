@@ -127,6 +127,7 @@ step; original checkpoint can be deleted afterward to reclaim ~13.4 GB.
 ## 3. How to Reproduce
 
 <!-- REQUIREMENT A4, K1, K2 -->
+> **Claude Code users:** Read `CLAUDE.md` and `reports/PROJECT_STATE.md` before continuing work in a new session.
 
 ### Prerequisites
 
