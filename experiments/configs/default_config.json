@@ -1,25 +1,29 @@
 {
-  "_comment": "Default experiment configuration. Values here are overridden by .env if set.",
+  "_comment": "Default experiment configuration. Cache/model paths must be outside the OneDrive repo. See .env.example.",
+  "_cache_warning": "Do not store model weights, HuggingFace cache, AirLLM shards, or GGUF files inside the repo or OneDrive.",
 
-  "model_id": "facebook/opt-6.7b",
-  "model_cache_dir": "./models",
-
-  "airllm_shard_dir": "./airllm_shards",
-  "airllm_cache_dir": "./airllm_cache",
+  "model_id_warmup":        "Qwen/Qwen2.5-0.5B-Instruct",
+  "model_id_stress":        "facebook/opt-6.7b",
+  "model_id_fallback_gguf": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+  "fallback_gguf_quant":    "Q4_K_M",
 
   "device": "cpu",
 
-  "max_new_tokens": 200,
+  "model_cache_dir":  "C:\\ai-model-cache\\hf",
+  "airllm_shard_dir": "C:\\ai-model-cache\\airllm-shards",
+  "airllm_cache_dir": "C:\\ai-model-cache\\airllm-cache",
+  "gguf_dir":         "C:\\ai-model-cache\\gguf",
+
+  "max_new_tokens": 64,
+  "n_runs":         3,
+  "cpu_tdp_watts":  35,
 
   "benchmark_prompt": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.",
 
-  "n_runs": 3,
+  "quantization_strategy": "gguf",
+  "gguf_quant_levels": ["Q4_K_M", "Q8_0"],
 
-  "cpu_tdp_watts": 45,
-
-  "quantization_strategy": "transformers",
-
-  "results_raw_dir": "./results/raw",
+  "results_raw_dir":       "./results/raw",
   "results_processed_dir": "./results/processed",
-  "figures_dir": "./figures"
+  "figures_dir":           "./figures"
 }

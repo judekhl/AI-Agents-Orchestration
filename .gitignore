@@ -39,10 +39,14 @@ build/
 *.npy
 
 # ── Model and cache directories ──────────────────────────────────────────────
+# NOTE: .gitignore prevents these from being committed, but it does NOT prevent
+# OneDrive from syncing them if they accidentally end up inside the repo folder.
+# Store all model weights and caches at C:\ai-model-cache\ (outside OneDrive).
+# See .env.example and experiments/configs/default_config.json for the recommended paths.
 models/
 model_cache/
 model_weights/
-# HuggingFace Hub cache
+# HuggingFace Hub cache (if someone sets HF_HOME inside the repo by mistake)
 .cache/
 hf_cache/
 hub/

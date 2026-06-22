@@ -127,70 +127,84 @@ step; original checkpoint can be deleted afterward to reclaim ~13.4 GB.
 ## 3. How to Reproduce
 
 <!-- REQUIREMENT A4, K1, K2 -->
-<!-- TODO: Finalize commands after all scripts are tested end-to-end. -->
 
 ### Prerequisites
 
 ```
 Python 3.10+
-~XX GB free disk space (for model weights — see Section 2)
-~XX GB RAM recommended
+~35 GB free disk space outside OneDrive (for model weights — see Section 2)
+8+ GB RAM (expect OOM on the stress model — that is the intended result)
 ```
 
-### Installation
+> **OneDrive / repo users — read this before downloading any model.**
+> This repository lives inside OneDrive. Model weights, HuggingFace cache, AirLLM shards,
+> and GGUF files **must not** be stored inside the repo or anywhere under OneDrive.
+> OneDrive will attempt to sync multi-GB weight files, wasting bandwidth and cloud storage.
+> AirLLM's shard writes during inference may also conflict with OneDrive's background sync,
+> causing file-lock errors mid-experiment.
+
+### Step 0 — Create external cache folders (once, before any download)
+
+```bat
+mkdir C:\ai-model-cache\hf
+mkdir C:\ai-model-cache\airllm-cache
+mkdir C:\ai-model-cache\airllm-shards
+mkdir C:\ai-model-cache\gguf
+```
+
+These paths are referenced by `.env` and `experiments/configs/default_config.json`.
+They live on the local `C:\` drive, outside OneDrive.
+
+### Step 1 — Clone and install
 
 ```bash
-# Clone the repo
 git clone https://github.com/judekhl/AI-Agents-Orchestration.git
 cd AI-Agents-Orchestration
 
 # Create and activate virtual environment
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Linux/macOS
 
 # Install core + experiment dependencies
 pip install -e ".[transformers,airllm,gguf,quality]"
 
-# Copy environment template and edit
-copy .env.example .env      # Windows
-# cp .env.example .env      # Linux/macOS
-# Edit .env — set HF_TOKEN only if using a gated model
+# Copy environment template — review and confirm cache paths before editing
+copy .env.example .env
+# No token needed — all models are public
 ```
 
-### Run experiments in order
+### Step 2 — Run experiments in order
 
 ```bash
-# Step 1 — Profile hardware (no model download required)
+# (2a) Profile hardware — no model download required
 python src/hardware_probe.py --output results/raw/hardware_profile.json
 
-# Step 2 — Run baseline (naive transformers, no optimization)
+# (2b) Baseline — naive transformers load, no optimization
 python src/run_baseline.py --config experiments/configs/default_config.json \
     --output results/raw/baseline_metrics.json
 
-# Step 3 — Run AirLLM experiment
+# (2c) AirLLM — layer-by-layer sharding from disk
 python src/run_airllm.py --config experiments/configs/default_config.json \
     --output results/raw/airllm_metrics.json
 
-# Step 4 — Run quantization variants
+# (2d) Quantization variants — GGUF Q4_K_M and Q8_0
 python src/run_quantized.py --config experiments/configs/default_config.json \
     --output-dir results/raw/
 
-# Step 5 — Run original extension (disk I/O observation)
+# (2e) Extension — disk I/O observation during AirLLM
 python src/extension_disk_io.py --config experiments/configs/default_config.json \
     --output results/raw/extension_disk_io.json
 
-# Step 6 — Quality evaluation across quantization levels
+# (2f) Quality evaluation across quantization levels
 python src/quality_eval.py --input-dir results/raw/ \
     --output results/processed/quality_scores.json
 
-# Step 7 — Economic analysis
+# (2g) Economic analysis
 python src/economic_analysis.py \
     --output results/processed/economic_analysis.json
 
-# Step 8 — Generate all plots and summary table
+# (2h) Generate all plots and summary table
 python src/plot_results.py --input-dir results/raw/ \
     --processed-dir results/processed/ \
     --output-dir figures/
