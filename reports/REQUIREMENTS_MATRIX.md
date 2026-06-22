@@ -29,12 +29,12 @@
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
 | A1 | GitHub repo exists, is public, and has a clean commit history | Submission instructions | GitHub URL accessible without login; `git log` shows meaningful commits | `NOT_STARTED` | Push all work to `judekhl/AI-Agents-Orchestration`; use descriptive commit messages during development | Submission fails entirely | Critical |
-| A2 | Repository has a clear, navigable directory structure | Submission instructions | Directories: `scripts/`, `results/raw/`, `results/processed/`, `reports/`, `figures/`, `README.md`, `.gitignore` | `NOT_STARTED` | Create skeleton structure before first commit | Grader cannot find deliverables | High |
-| A3 | `README.md` is the main final report (not a separate PDF) | Assignment brief | `README.md` at repo root; must be complete, not a placeholder | `NOT_STARTED` | Write README incrementally as experiments complete; final pass ties everything together | Primary deliverable missing | Critical |
-| A4 | Reproduction instructions included in README | Assignment brief | Section in README: "How to reproduce" with exact commands, Python version, package versions | `NOT_STARTED` | Add after all scripts are finalized | Reproducibility criterion fails | High |
-| A5 | Screenshots included or explicitly explained if impossible | Assignment brief | `figures/screenshots/` directory OR explicit note in README explaining why screenshots are not possible | `NOT_STARTED` | Capture terminal output screenshots during runs; for headless/cloud runs, save stdout logs as equivalent | Visual evidence missing | Medium |
-| A6 | No secrets or API tokens committed to the repo | Security / submission | `.gitignore` covers `.env`, `*.key`, `secrets/`; `git log --all` scan shows no tokens | `NOT_STARTED` | Create `.gitignore` before first commit; never hardcode keys | Academic integrity / security violation | Critical |
-| A7 | Large model files are gitignored (no model weights in repo) | Submission instructions | `.gitignore` includes `*.bin`, `*.safetensors`, `*.gguf`, `models/`, `shards/`, `cache/` | `NOT_STARTED` | Add model file patterns to `.gitignore` before downloading anything | Repo bloat / push failure / GitHub LFS rejection | Critical |
+| A2 | Repository has a clear, navigable directory structure | Submission instructions | Directories: `scripts/`, `results/raw/`, `results/processed/`, `reports/`, `figures/`, `README.md`, `.gitignore` | `IN_PROGRESS` | Skeleton created: `src/`, `results/raw/`, `results/processed/`, `figures/`, `figures/screenshots/`, `experiments/`, `prompts/`, `configs/`, `reports/`. Real deliverable files not yet present. | Grader cannot find deliverables | High |
+| A3 | `README.md` is the main final report (not a separate PDF) | Assignment brief | `README.md` at repo root; must be complete, not a placeholder | `IN_PROGRESS` | README.md exists with all required section headers (Hardware, Model Selection, Reproduce, Baseline, AirLLM, Quantization, Results, Economic Analysis, Lecture Concepts, Extension, Self-Assessment). Content is placeholder — no real data yet. | Primary deliverable missing | Critical |
+| A4 | Reproduction instructions included in README | Assignment brief | Section in README: "How to reproduce" with exact commands, Python version, package versions | `IN_PROGRESS` | README "How to Reproduce" section written with full command sequence. Commands not yet end-to-end tested — will finalize after all scripts are verified runnable. | Reproducibility criterion fails | High |
+| A5 | Screenshots included or explicitly explained if impossible | Assignment brief | `figures/screenshots/` directory OR explicit note in README explaining why screenshots are not possible | `IN_PROGRESS` | `figures/screenshots/` directory created; README has screenshot table listing 5 planned screenshots. No screenshots taken yet — will capture during experiment runs. | Visual evidence missing | Medium |
+| A6 | No secrets or API tokens committed to the repo | Security / submission | `.gitignore` covers `.env`, `*.key`, `secrets/`; `git log --all` scan shows no tokens | `IN_PROGRESS` | `.gitignore` created before first model download or .env creation; covers `.env`, `*.env`, `*.key`. `.env.example` uses only placeholders. `git log` scan should be run before final push to confirm. | Academic integrity / security violation | Critical |
+| A7 | Large model files are gitignored (no model weights in repo) | Submission instructions | `.gitignore` includes `*.bin`, `*.safetensors`, `*.gguf`, `models/`, `shards/`, `cache/` | `DONE` | `.gitignore` covers `*.bin`, `*.safetensors`, `*.gguf`, `*.pt`, `*.pth`, `*.onnx`, `models/`, `airllm_shards/`, `airllm_cache/`, `shards/`, `.cache/`, `hf_cache/`. Created before any model files exist. Evidence: `.gitignore` in repo root. | Repo bloat / push failure / GitHub LFS rejection | Critical |
 
 ---
 
@@ -46,7 +46,7 @@
 | B2 | Model choice justified relative to hardware constraints | Model selection section | README section "Model Selection Rationale" citing specific RAM/VRAM numbers from B1 | `NOT_STARTED` | After B1, choose model that is borderline feasible (e.g., 7B–13B on CPU-only or RAM-limited machine); write justification comparing model size vs available RAM | Appears random; no engineering judgement demonstrated | High |
 | B3 | Model is large enough to stress hardware but not trivially impossible | Model selection section | README justification + baseline experiment showing strain (slow, OOM, or disk paging) | `NOT_STARTED` | Choose ≥7B parameter model for ≤16 GB RAM; document why smaller model would not stress the system | Assignment objective not met | High |
 | B4 | Disk-space check performed before downloading models | Model selection section | `results/raw/disk_check.txt` or log showing available disk space vs model download size | `NOT_STARTED` | Add disk-space check to setup script; save output | Missing a "professional practice" mark | Medium |
-| B5 | Public / no-auth-token fallback model is defined | Model selection section | README names at least one fallback model that requires no Hugging Face token (e.g., `TheBloke` GGUF variants, `facebook/opt-*`, `EleutherAI/gpt-j-6b`) | `NOT_STARTED` | Research and document fallback before experiments; include in README | If primary model is gated, entire experiment chain fails | High |
+| B5 | Public / no-auth-token fallback model is defined | Model selection section | README names at least one fallback model that requires no Hugging Face token (e.g., `TheBloke` GGUF variants, `facebook/opt-*`, `EleutherAI/gpt-j-6b`) | `IN_PROGRESS` | `src/model_selection.py` defines `DEFAULT_PRIMARY_MODEL = "facebook/opt-6.7b"` (public) and `DEFAULT_FALLBACK_MODEL = "EleutherAI/gpt-j-6b"` (public). `.env.example` defaults to `facebook/opt-6.7b`. README placeholder present — will fill in after hardware_probe confirms feasibility. | If primary model is gated, entire experiment chain fails | High |
 
 ---
 
@@ -54,7 +54,7 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| C1 | Direct / naive local baseline run is attempted | Baseline section | `scripts/baseline_run.py` exists AND `results/raw/baseline_metrics.json` or `results/raw/baseline_failure.txt` exists | `NOT_STARTED` | Run model with standard `transformers` pipeline, no optimization, record outcome | Baseline reference point missing; nothing to compare against | Critical |
+| C1 | Direct / naive local baseline run is attempted | Baseline section | `scripts/baseline_run.py` exists AND `results/raw/baseline_metrics.json` or `results/raw/baseline_failure.txt` exists | `IN_PROGRESS` | `src/run_baseline.py` exists with full instrumentation (RamSampler, TTFT timing, failure logging). Result JSON not yet generated — must run the script. | Baseline reference point missing; nothing to compare against | Critical |
 | C2 | Outcome documented honestly: success, OOM, excessive slowness, or failure | Baseline section | `results/raw/baseline_metrics.json` (if success) OR `results/raw/baseline_failure.txt` with error log and explanation | `NOT_STARTED` | Capture `traceback`, `MemoryError`, or timing data; do not fabricate success if it OOMed | Negative results presented without documentation look fabricated | Critical |
 | C3 | Baseline metrics saved to raw result files (not only in README) | Baseline section | `results/raw/baseline_metrics.json` containing TTFT, TPOT, throughput, RAM peak, runtime | `NOT_STARTED` | Instrument script with `tracemalloc` / `psutil` memory sampling and `time.perf_counter` timing | Cannot regenerate graphs from real data | High |
 | C4 | Bottleneck identified and explained: RAM, VRAM, CPU compute, or disk I/O | Baseline section | README section "Baseline Bottleneck Analysis" + supporting data (e.g., `htop` screenshot or `psutil` memory trace) | `NOT_STARTED` | During baseline run, sample RAM every second; identify where limit was hit; connect to lecture concepts (memory-bound vs compute-bound) | Key conceptual analysis missing | High |
@@ -65,7 +65,7 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| D1 | AirLLM integration attempted | AirLLM section | `scripts/airllm_run.py` exists | `NOT_STARTED` | Install `airllm` package; write script using `AirLLMLlama2` or `AutoModel` from `airllm` | AirLLM section entirely missing | Critical |
+| D1 | AirLLM integration attempted | AirLLM section | `scripts/airllm_run.py` exists | `IN_PROGRESS` | `src/run_airllm.py` exists using `airllm.AutoModel`, with configurable `AIRLLM_SHARD_DIR`/`AIRLLM_CACHE_DIR`, DiskIoSampler, and failure logging. Must be run to produce `results/raw/airllm_metrics.json`. | AirLLM section entirely missing | Critical |
 | D2 | AirLLM result measured if it runs | AirLLM section | `results/raw/airllm_metrics.json` with same metric fields as baseline | `NOT_STARTED` | Reuse metric instrumentation from C3; save to separate raw file | No comparison data for AirLLM | Critical |
 | D3 | If AirLLM fails, failure documented as negative result with logs and fallback | AirLLM section | `results/raw/airllm_failure.txt` with full error log + README section explaining what failed and why, + alternative approach taken | `NOT_STARTED` | Wrap AirLLM calls in try/except; save exception to file; document in README as "Negative Result — AirLLM" | Looks like work was skipped rather than failing honestly | High |
 | D4 | Layer-sharding / disk paging / I/O behavior discussed | AirLLM section | README section "AirLLM: How Layer Loading Works" explicitly referencing paging, virtual memory, disk I/O concepts from lecture | `NOT_STARTED` | Explain that AirLLM loads one layer at a time from disk, analogous to OS paging; connect to lecture vocabulary | Conceptual analysis missing | High |
@@ -77,7 +77,7 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `NOT_STARTED` | For `transformers`: try `torch_dtype=torch.float32` vs `torch.float16`/`torch.bfloat16`; for GGUF fallback: try Q8_0 vs Q4_K_M via `llama-cpp-python` | Quantization section missing entirely | Critical |
+| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `IN_PROGRESS` | `src/run_quantized.py` has 3 transformers configs (FP32, FP16, BF16) + 2 GGUF configs (Q8_0, Q4_K_M). Must run to produce JSON files. | Quantization section missing entirely | Critical |
 | E2 | Impact on memory, speed, and output quality measured or documented for each level | Quantization section | Each `results/raw/quant_*_metrics.json` contains RAM peak, TTFT, throughput, and a short output quality note | `NOT_STARTED` | Run same prompt across all quant levels; compare outputs qualitatively; log metrics consistently | Cannot draw quantization tradeoff graph | High |
 | E3 | Quantization "red line" for quality discussed | Quantization section | README section "Quantization Quality Threshold" discussing at what level output degrades noticeably, with example outputs | `NOT_STARTED` | After E2, compare outputs; note any coherence loss at lower precision; reference bit-width tradeoffs from lecture | Conceptual insight missing | Medium |
 
@@ -164,10 +164,10 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| K1 | Scripts are clean, runnable, and use argument parsing | Quality section | All `scripts/*.py` have `if __name__ == "__main__"` guard and `argparse` for configurable paths/params | `NOT_STARTED` | Code review all scripts before final commit | Grader cannot reproduce runs | High |
-| K2 | CLI and config files documented | Quality section | README "How to Reproduce" section with exact commands; any config files have inline comments | `NOT_STARTED` | Write reproduction section after scripts are finalized | Reproducibility criterion fails | High |
-| K3 | Raw data saved separately from processed summaries | Quality section | `results/raw/` contains unmodified metric JSON files; `results/processed/` contains summary CSVs generated from raw | `NOT_STARTED` | Enforce this structure in all scripts: never overwrite raw files | Cannot audit data pipeline | High |
-| K4 | Graphs generated from raw data (not manually constructed) | Quality section | `scripts/generate_report.py` reads from `results/raw/` and writes to `figures/` and `results/processed/` | `NOT_STARTED` | Make graph generation script idempotent and reproducible | Graphs cannot be verified | High |
+| K1 | Scripts are clean, runnable, and use argument parsing | Quality section | All `scripts/*.py` have `if __name__ == "__main__"` guard and `argparse` for configurable paths/params | `IN_PROGRESS` | All `src/*.py` files have `if __name__ == "__main__"` guard and `argparse`. Import of heavy deps (torch, transformers, airllm) is inside functions so modules are importable without packages installed. End-to-end runability not yet verified. | Grader cannot reproduce runs | High |
+| K2 | CLI and config files documented | Quality section | README "How to Reproduce" section with exact commands; any config files have inline comments | `IN_PROGRESS` | README "How to Reproduce" section has full command sequence. `configs/default_config.json` has `_comment` fields. `.env.example` has inline comments on every variable. Commands not yet end-to-end tested. | Reproducibility criterion fails | High |
+| K3 | Raw data saved separately from processed summaries | Quality section | `results/raw/` contains unmodified metric JSON files; `results/processed/` contains summary CSVs generated from raw | `IN_PROGRESS` | `results/raw/` and `results/processed/` directories created. All `src/run_*.py` scripts write exclusively to `results/raw/`. `src/plot_results.py` and `src/quality_eval.py` write to `results/processed/`. No files present yet. | Cannot audit data pipeline | High |
+| K4 | Graphs generated from raw data (not manually constructed) | Quality section | `scripts/generate_report.py` reads from `results/raw/` and writes to `figures/` and `results/processed/` | `IN_PROGRESS` | `src/plot_results.py` reads `results/raw/*_metrics.json`, generates 7 standard graphs + summary CSV to `figures/` and `results/processed/`. Idempotent (re-running overwrites). Not yet run — requires experiment data first. | Graphs cannot be verified | High |
 | K5 | README does not contain fabricated numbers | Quality section | All numbers in README trace to files in `results/raw/` | `NOT_STARTED` | Strict rule: never type a number in README without a corresponding raw file | Academic integrity violation | Critical |
 | K6 | Code handles failures gracefully (try/except, OOM handling, timeout) | Quality section | Scripts catch `MemoryError`, `RuntimeError`, `torch.cuda.OutOfMemoryError`; save partial results or failure log before exiting | `NOT_STARTED` | Wrap all model loading and inference in try/except blocks; always save whatever data was collected before crash | A crash loses all data; also hides interesting negative results | High |
 | K7 | Git commits show development process (not one-shot dump) | Quality section | `git log` shows incremental commits: setup → baseline → AirLLM → quantization → analysis → figures → README polish | `NOT_STARTED` | Commit after each meaningful step; write descriptive messages | One-shot commit suggests work was not done incrementally | Medium |
@@ -177,20 +177,22 @@
 
 ## SUMMARY DASHBOARD
 
+Last updated: 2026-06-23 (scaffold commit)
+
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
-| A — Repository | 7 | 7 | 0 | 0 | 0 | A1, A3, A6, A7 |
-| B — Hardware | 5 | 5 | 0 | 0 | 0 | B1 |
-| C — Baseline | 4 | 4 | 0 | 0 | 0 | C1, C2, C3 |
-| D — AirLLM | 5 | 5 | 0 | 0 | 0 | D1, D2 |
-| E — Quantization | 3 | 3 | 0 | 0 | 0 | E1 |
+| A — Repository | 7 | 1 | 5 | 1 | 0 | A1 (push), A3 (README complete) |
+| B — Hardware | 5 | 4 | 1 | 0 | 0 | B1 (hardware_probe.py not run) |
+| C — Baseline | 4 | 3 | 1 | 0 | 0 | C1 (script exists, not run), C2, C3 |
+| D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script exists, not run), D2 |
+| E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script exists, not run) |
 | F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 |
 | G — Graphs | 9 | 9 | 0 | 0 | 0 | G1 |
 | H — Economics | 9 | 9 | 0 | 0 | 0 | — |
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
-| K — Engineering | 8 | 8 | 0 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **74** | **0** | **0** | **0** | **— ** |
+| K — Engineering | 8 | 4 | 4 | 0 | 0 | K5 |
+| **TOTAL** | **74** | **60** | **13** | **1** | **0** | **—** |
 
 ---
 
@@ -220,7 +222,17 @@
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 0 / 74 requirements**
+**DONE: 1 / 74 requirements**  
+**IN_PROGRESS: 13 / 74 requirements**  
+**NOT_STARTED: 60 / 74 requirements**
 
-The repository is empty. No evidence exists for any requirement.
-Do not claim 90+ until the DONE count reaches 74/74 or every gap is explicitly justified as intentionally omitted with grader-acceptable reasoning.
+Scaffold is in place. Directory structure, .gitignore, .env.example, README skeleton,
+pyproject.toml, all src/ scripts, configs/, prompts/, and reports/ structure exist.
+
+**Nothing is 90+ ready yet.** The next step is to run hardware_probe.py to get
+real hardware data, then run experiments in order. Do not claim 90+ until:
+- All results/raw/*.json files exist with real measured data
+- All figures/*.png files exist and are generated from that raw data
+- All README sections contain real numbers (not _TBD_)
+- Self-Assessment section is written with evidence pointers
+- git log shows incremental development commits

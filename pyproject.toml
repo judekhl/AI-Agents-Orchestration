@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "airllm-benchmark"
+version = "0.1.0"
+description = "Assignment 05 — AirLLM, Quantization, and Performance Benchmarking"
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Core dependencies (always required)
+dependencies = [
+    "psutil>=5.9.0",           # RAM and disk I/O monitoring
+    "matplotlib>=3.8.0",       # Graph generation
+    "pandas>=2.1.0",           # Summary table processing
+    "numpy>=1.26.0",           # Numeric utilities
+    "tqdm>=4.66.0",            # Progress bars
+    "python-dotenv>=1.0.0",    # .env loading
+]
+
+[project.optional-dependencies]
+# Standard transformers-based inference (baseline + quantization with torch dtypes)
+transformers = [
+    "torch>=2.1.0",
+    "transformers>=4.37.0",
+    "accelerate>=0.26.0",
+    "sentencepiece>=0.1.99",
+    "protobuf>=4.25.0",
+]
+
+# AirLLM layer-sharding inference
+airllm = [
+    "airllm>=0.3.0",
+    "torch>=2.1.0",
+    "transformers>=4.37.0",
+]
+
+# GGUF quantization fallback via llama.cpp Python bindings
+gguf = [
+    "llama-cpp-python>=0.2.0",
+]
+
+# 4-bit / 8-bit bitsandbytes quantization (requires CUDA or CPU bitsandbytes build)
+bnb = [
+    "bitsandbytes>=0.41.0",
+    "torch>=2.1.0",
+    "transformers>=4.37.0",
+    "accelerate>=0.26.0",
+]
+
+# Output quality evaluation
+quality = [
+    "nltk>=3.8.0",
+    "rouge-score>=0.1.2",
+]
+
+# Development and exploration
+dev = [
+    "ipykernel>=6.0.0",
+    "jupyter>=1.0.0",
+    "rich>=13.0.0",
+]
+
+# Install everything
+all = [
+    "airllm-benchmark[transformers,airllm,gguf,quality,dev]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-dir]
+"" = "."

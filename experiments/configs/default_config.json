@@ -1,0 +1,25 @@
+{
+  "_comment": "Default experiment configuration. Values here are overridden by .env if set.",
+
+  "model_id": "facebook/opt-6.7b",
+  "model_cache_dir": "./models",
+
+  "airllm_shard_dir": "./airllm_shards",
+  "airllm_cache_dir": "./airllm_cache",
+
+  "device": "cpu",
+
+  "max_new_tokens": 200,
+
+  "benchmark_prompt": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.",
+
+  "n_runs": 3,
+
+  "cpu_tdp_watts": 45,
+
+  "quantization_strategy": "transformers",
+
+  "results_raw_dir": "./results/raw",
+  "results_processed_dir": "./results/processed",
+  "figures_dir": "./figures"
+}

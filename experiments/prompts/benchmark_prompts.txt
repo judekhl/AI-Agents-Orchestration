@@ -1,0 +1,6 @@
+# Benchmark prompts for Assignment 05
+# One prompt per line (lines starting with # are comments)
+# The default_config.json uses the first substantive prompt below.
+# Use a single consistent prompt across ALL scenarios to ensure fair comparison.
+
+Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.
