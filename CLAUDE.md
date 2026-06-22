@@ -6,16 +6,38 @@
 
 ---
 
+## Session Start Protocol
+
+At the start of every session, read **only** these three files — nothing else unless the task names specific files:
+
+1. `CLAUDE.md` (this file)
+2. `reports/PROJECT_STATE.md`
+3. `reports/NEXT_PROMPT.md`
+
+Read `README.md` or `reports/REQUIREMENTS_MATRIX.md` **only when the task requires editing them.**
+Do not read or explore other files speculatively.
+
+---
+
 ## Core Rules
 
 - **Do not fabricate** benchmark numbers, hardware specs, model results, costs, or screenshots.
 - **Do not download models** unless the prompt explicitly says to download.
 - **Do not store models inside the repo or inside OneDrive.**
 - **Do not use a HuggingFace token** unless explicitly requested.
-- **Do not run broad `Explore`** unless the prompt asks for repo exploration.
-- **Read only specific files needed** for the current task.
-- **Keep output concise.** No full file pastes or long diffs unless asked.
-- After each meaningful milestone, update `reports/PROJECT_STATE.md` and suggest a commit.
+- **Do not use the `Explore` agent** unless the prompt explicitly asks for repo exploration.
+- **Do not read the whole repo** — read only files needed for the current task.
+- **Do not paste full files or long diffs** unless asked.
+- **Do not over-explain** decisions already recorded in `reports/PROJECT_STATE.md`.
+- After each meaningful milestone, update `reports/PROJECT_STATE.md` and commit if requested.
+
+## Output Format
+
+Keep final responses under 40 lines unless more is requested. Format:
+1. What changed (bullet list)
+2. Validation results (one line each)
+3. `git status`
+4. Next step (one sentence)
 
 ---
 
