@@ -28,7 +28,7 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| A1 | GitHub repo exists, is public, and has a clean commit history | Submission instructions | GitHub URL accessible without login; `git log` shows meaningful commits | `NOT_STARTED` | Push all work to `judekhl/AI-Agents-Orchestration`; use descriptive commit messages during development | Submission fails entirely | Critical |
+| A1 | GitHub repo exists, is public, and has a clean commit history | Submission instructions | GitHub URL accessible without login; `git log` shows meaningful commits | `DONE` | Pushed to https://github.com/judekhl/AI-Agents-Orchestration on 2026-06-23. Two commits present with descriptive messages. Repo is public. Additional commits will be added as experiments complete. | Submission fails entirely | Critical |
 | A2 | Repository has a clear, navigable directory structure | Submission instructions | Directories: `scripts/`, `results/raw/`, `results/processed/`, `reports/`, `figures/`, `README.md`, `.gitignore` | `IN_PROGRESS` | Skeleton created: `src/`, `results/raw/`, `results/processed/`, `figures/`, `figures/screenshots/`, `experiments/`, `prompts/`, `configs/`, `reports/`. Real deliverable files not yet present. | Grader cannot find deliverables | High |
 | A3 | `README.md` is the main final report (not a separate PDF) | Assignment brief | `README.md` at repo root; must be complete, not a placeholder | `IN_PROGRESS` | README.md exists with all required section headers (Hardware, Model Selection, Reproduce, Baseline, AirLLM, Quantization, Results, Economic Analysis, Lecture Concepts, Extension, Self-Assessment). Content is placeholder — no real data yet. | Primary deliverable missing | Critical |
 | A4 | Reproduction instructions included in README | Assignment brief | Section in README: "How to reproduce" with exact commands, Python version, package versions | `IN_PROGRESS` | README "How to Reproduce" section written with full command sequence. Commands not yet end-to-end tested — will finalize after all scripts are verified runnable. | Reproducibility criterion fails | High |
@@ -42,10 +42,10 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| B1 | Exact hardware documented: CPU model, core count, RAM (GB), GPU model or "none", VRAM if present, disk type (HDD/SSD/NVMe) and free space (GB), OS and version | Hardware section | `results/raw/hardware_profile.json` AND a "Hardware" section in README | `NOT_STARTED` | Run `scripts/profile_hardware.py` which uses `psutil`, `platform`, `subprocess` to dump specs; manually verify GPU via `nvidia-smi` or document absence | Grader cannot evaluate feasibility of experiments | Critical |
-| B2 | Model choice justified relative to hardware constraints | Model selection section | README section "Model Selection Rationale" citing specific RAM/VRAM numbers from B1 | `NOT_STARTED` | After B1, choose model that is borderline feasible (e.g., 7B–13B on CPU-only or RAM-limited machine); write justification comparing model size vs available RAM | Appears random; no engineering judgement demonstrated | High |
-| B3 | Model is large enough to stress hardware but not trivially impossible | Model selection section | README justification + baseline experiment showing strain (slow, OOM, or disk paging) | `NOT_STARTED` | Choose ≥7B parameter model for ≤16 GB RAM; document why smaller model would not stress the system | Assignment objective not met | High |
-| B4 | Disk-space check performed before downloading models | Model selection section | `results/raw/disk_check.txt` or log showing available disk space vs model download size | `NOT_STARTED` | Add disk-space check to setup script; save output | Missing a "professional practice" mark | Medium |
+| B1 | Exact hardware documented: CPU model, core count, RAM (GB), GPU model or "none", VRAM if present, disk type (HDD/SSD/NVMe) and free space (GB), OS and version | Hardware section | `results/raw/hardware_profile.json` AND a "Hardware" section in README | `DONE` | `results/raw/hardware_profile.json` contains: CPU=i5-1135G7, 4P/8L cores, RAM=8.22 GB, GPU=none, VRAM=N/A, Disk=NVMe SSD 511 GB / 38.44 GB free, OS=Windows 11 24H2. README hardware table populated with these real numbers. Evidence: `results/raw/hardware_profile.json` ✓ | Grader cannot evaluate feasibility of experiments | Critical |
+| B2 | Model choice justified relative to hardware constraints | Model selection section | README section "Model Selection Rationale" citing specific RAM/VRAM numbers from B1 | `IN_PROGRESS` | Hardware confirmed: 8.22 GB RAM, no GPU. A 7B FP16 model needs ~14 GB — OOM expected on baseline. GGUF Q4 (~3.5 GB) fits. Model selection section in README still has _TBD_ — will complete in next step alongside model download decision. | Appears random; no engineering judgement demonstrated | High |
+| B3 | Model is large enough to stress hardware but not trivially impossible | Model selection section | README justification + baseline experiment showing strain (slow, OOM, or disk paging) | `IN_PROGRESS` | 8.22 GB RAM means any 7B model definitively stresses the hardware. A 1B model would not. Model choice (7B class) is justified. OOM evidence will come from baseline experiment. README section still _TBD_. | Assignment objective not met | High |
+| B4 | Disk-space check performed before downloading models | Model selection section | `results/raw/disk_check.txt` or log showing available disk space vs model download size | `DONE` | `hardware_profile.json` records `disk_free_gb: 38.44` and `disk_total_gb: 511.04` at probe time (before any model download). 38.44 GB free vs ~13.4 GB for OPT-6.7B FP16 = adequate margin. Evidence embedded in `results/raw/hardware_profile.json`. | Missing a "professional practice" mark | Medium |
 | B5 | Public / no-auth-token fallback model is defined | Model selection section | README names at least one fallback model that requires no Hugging Face token (e.g., `TheBloke` GGUF variants, `facebook/opt-*`, `EleutherAI/gpt-j-6b`) | `IN_PROGRESS` | `src/model_selection.py` defines `DEFAULT_PRIMARY_MODEL = "facebook/opt-6.7b"` (public) and `DEFAULT_FALLBACK_MODEL = "EleutherAI/gpt-j-6b"` (public). `.env.example` defaults to `facebook/opt-6.7b`. README placeholder present — will fill in after hardware_probe confirms feasibility. | If primary model is gated, entire experiment chain fails | High |
 
 ---
@@ -177,22 +177,22 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (scaffold commit)
+Last updated: 2026-06-23 (hardware profile commit)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
-| A — Repository | 7 | 1 | 5 | 1 | 0 | A1 (push), A3 (README complete) |
-| B — Hardware | 5 | 4 | 1 | 0 | 0 | B1 (hardware_probe.py not run) |
-| C — Baseline | 4 | 3 | 1 | 0 | 0 | C1 (script exists, not run), C2, C3 |
-| D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script exists, not run), D2 |
-| E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script exists, not run) |
+| A — Repository | 7 | 0 | 5 | 2 | 0 | A3 (README needs real data), A6 (verify before final push) |
+| B — Hardware | 5 | 0 | 3 | 2 | 0 | B2/B3/B5 in progress; B1 DONE, B4 DONE |
+| C — Baseline | 4 | 3 | 1 | 0 | 0 | C1 (script ready, not run), C2, C3 |
+| D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script ready, not run), D2 |
+| E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script ready, not run) |
 | F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 |
 | G — Graphs | 9 | 9 | 0 | 0 | 0 | G1 |
 | H — Economics | 9 | 9 | 0 | 0 | 0 | — |
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
 | K — Engineering | 8 | 4 | 4 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **60** | **13** | **1** | **0** | **—** |
+| **TOTAL** | **74** | **55** | **15** | **4** | **0** | **—** |
 
 ---
 
@@ -222,17 +222,17 @@ Last updated: 2026-06-23 (scaffold commit)
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 1 / 74 requirements**  
+**DONE: 4 / 74 requirements** (A1 — repo pushed, A7 — model files gitignored, B1 — hardware profile, B4 — disk space check)  
 **IN_PROGRESS: 13 / 74 requirements**  
-**NOT_STARTED: 60 / 74 requirements**
+**NOT_STARTED: 57 / 74 requirements**
 
-Scaffold is in place. Directory structure, .gitignore, .env.example, README skeleton,
-pyproject.toml, all src/ scripts, configs/, prompts/, and reports/ structure exist.
+Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD, 38.44 GB free.
+Critical finding: 8.22 GB RAM means naive 7B model load will OOM — expected negative result.
+AirLLM and GGUF Q4 are the viable paths.
 
-**Nothing is 90+ ready yet.** The next step is to run hardware_probe.py to get
-real hardware data, then run experiments in order. Do not claim 90+ until:
-- All results/raw/*.json files exist with real measured data
-- All figures/*.png files exist and are generated from that raw data
-- All README sections contain real numbers (not _TBD_)
-- Self-Assessment section is written with evidence pointers
-- git log shows incremental development commits
+**NOT 90+ ready.** Remaining blockers:
+- Baseline, AirLLM, and quantization experiments not yet run (no results/raw/ data files)
+- All figures/*.png not yet generated
+- README sections B2/B3, all of Sections C–K still contain _TBD_
+- Economic analysis, extension, and self-assessment not written
+- Model not yet selected or downloaded

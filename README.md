@@ -31,31 +31,35 @@
 
 ## 1. Hardware Profile
 
-<!-- REQUIREMENT B1 -->
-<!-- TODO: Run `python src/hardware_probe.py --output results/raw/hardware_profile.json`
-     then paste the output table here. Do not fill in manually. -->
+<!-- REQUIREMENT B1 — populated from results/raw/hardware_profile.json on 2026-06-23 -->
 
 | Component | Specification |
 |---|---|
-| CPU model | _TBD — run hardware_probe.py_ |
-| CPU cores (physical / logical) | _TBD_ |
-| RAM (GB total) | _TBD_ |
-| GPU | _TBD_ |
-| VRAM (GB) | _TBD or "N/A — no discrete GPU"_ |
-| Disk type | _TBD (HDD / SSD / NVMe)_ |
-| Disk free (GB) | _TBD_ |
-| OS and version | _TBD_ |
+| CPU model | 11th Gen Intel Core i5-1135G7 @ 2.40 GHz |
+| CPU cores (physical / logical) | 4 physical / 8 logical |
+| RAM (GB total) | 8.22 GB |
+| RAM (available at probe) | 0.87 GB |
+| GPU | N/A — no discrete CUDA GPU |
+| VRAM (GB) | N/A — no discrete GPU |
+| Disk model | NVMe KINGSTON OM8SBP3512K-AH |
+| Disk type | NVMe SSD |
+| Disk total (GB) | 511.04 GB |
+| Disk free (GB) | 38.44 GB |
+| OS and version | Windows 11 (build 10.0.26200, 24H2) |
+| Python version | 3.10.0 |
 
-**Evidence file:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) — _not yet generated_
+**Critical constraint:** 8.22 GB total RAM with no GPU. A 7B model in FP16 requires ~14 GB RAM — naive baseline load will OOM. AirLLM layer-paging and GGUF Q4 quantization are the primary mitigations.
+
+**Evidence file:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) ✓  
+**Summary:** [`results/processed/hardware_summary.md`](results/processed/hardware_summary.md) ✓
 
 ---
 
 ## 2. Model Selection Rationale
 
 <!-- REQUIREMENT B2, B3, B4, B5 -->
-<!-- TODO: After hardware_probe.py runs, fill in this section.
-     Justify: Why this model? Why this size? What constraint drove the choice?
-     Name a public fallback model (no HF token required). -->
+<!-- Hardware profile complete (see Section 1). Next step: choose model, justify against
+     8.22 GB RAM constraint, and fill in the _TBD_ fields below after download decision. -->
 
 **Primary model:** _TBD_  
 **Fallback model (no auth token required):** _TBD_  
@@ -68,11 +72,9 @@ _TBD — will explain why this model stresses the hardware without being trivial
 
 ### Disk Space Check
 
-<!-- TODO: Paste output of disk check here -->
-
-**Available disk before download:** _TBD_ GB  
-**Model download size:** _TBD_ GB  
-**Evidence:** [`results/raw/disk_check.txt`](results/raw/disk_check.txt) — _not yet generated_
+**Available disk before any model download:** 38.44 GB (NVMe SSD, measured 2026-06-23)  
+**Model download size:** _TBD_ GB — depends on model chosen in next step  
+**Evidence:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) field `disk_free_gb` ✓
 
 ---
 
