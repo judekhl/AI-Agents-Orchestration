@@ -43,10 +43,10 @@
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
 | B1 | Exact hardware documented: CPU model, core count, RAM (GB), GPU model or "none", VRAM if present, disk type (HDD/SSD/NVMe) and free space (GB), OS and version | Hardware section | `results/raw/hardware_profile.json` AND a "Hardware" section in README | `DONE` | `results/raw/hardware_profile.json` contains: CPU=i5-1135G7, 4P/8L cores, RAM=8.22 GB, GPU=none, VRAM=N/A, Disk=NVMe SSD 511 GB / 38.44 GB free, OS=Windows 11 24H2. README hardware table populated with these real numbers. Evidence: `results/raw/hardware_profile.json` ✓ | Grader cannot evaluate feasibility of experiments | Critical |
-| B2 | Model choice justified relative to hardware constraints | Model selection section | README section "Model Selection Rationale" citing specific RAM/VRAM numbers from B1 | `IN_PROGRESS` | Hardware confirmed: 8.22 GB RAM, no GPU. A 7B FP16 model needs ~14 GB — OOM expected on baseline. GGUF Q4 (~3.5 GB) fits. Model selection section in README still has _TBD_ — will complete in next step alongside model download decision. | Appears random; no engineering judgement demonstrated | High |
-| B3 | Model is large enough to stress hardware but not trivially impossible | Model selection section | README justification + baseline experiment showing strain (slow, OOM, or disk paging) | `IN_PROGRESS` | 8.22 GB RAM means any 7B model definitively stresses the hardware. A 1B model would not. Model choice (7B class) is justified. OOM evidence will come from baseline experiment. README section still _TBD_. | Assignment objective not met | High |
+| B2 | Model choice justified relative to hardware constraints | Model selection section | README section "Model Selection Rationale" citing specific RAM/VRAM numbers from B1 | `DONE` | README Section 2 populated with three-role model selection using measured RAM (8.22 GB) and disk (38.44 GB). Cites: warm-up=Qwen2.5-0.5B (~1.5 GB RAM), stress=OPT-6.7B (~14.0 GB RAM > 8.22 GB ceiling), fallback=Qwen2.5-7B Q4_K_M GGUF (~4.8 GB RAM). Disk budget table shows 32.2 GB needed vs 38.44 GB free. Evidence: `results/raw/model_selection.json` ✓ | Appears random; no engineering judgement demonstrated | High |
+| B3 | Model is large enough to stress hardware but not trivially impossible | Model selection section | README justification + baseline experiment showing strain (slow, OOM, or disk paging) | `IN_PROGRESS` | OPT-6.7B (14.0 GB FP16) vs 8.22 GB RAM: rationale documented in README — any 7B model overwhelms this machine's RAM; a 1B model would not. README explanation written. OOM evidence will come from baseline experiment (not yet run). Status stays IN_PROGRESS until baseline run produces `results/raw/baseline_failure.txt` or `baseline_metrics.json`. | Assignment objective not met | High |
 | B4 | Disk-space check performed before downloading models | Model selection section | `results/raw/disk_check.txt` or log showing available disk space vs model download size | `DONE` | `hardware_profile.json` records `disk_free_gb: 38.44` and `disk_total_gb: 511.04` at probe time (before any model download). 38.44 GB free vs ~13.4 GB for OPT-6.7B FP16 = adequate margin. Evidence embedded in `results/raw/hardware_profile.json`. | Missing a "professional practice" mark | Medium |
-| B5 | Public / no-auth-token fallback model is defined | Model selection section | README names at least one fallback model that requires no Hugging Face token (e.g., `TheBloke` GGUF variants, `facebook/opt-*`, `EleutherAI/gpt-j-6b`) | `IN_PROGRESS` | `src/model_selection.py` defines `DEFAULT_PRIMARY_MODEL = "facebook/opt-6.7b"` (public) and `DEFAULT_FALLBACK_MODEL = "EleutherAI/gpt-j-6b"` (public). `.env.example` defaults to `facebook/opt-6.7b`. README placeholder present — will fill in after hardware_probe confirms feasibility. | If primary model is gated, entire experiment chain fails | High |
+| B5 | Public / no-auth-token fallback model is defined | Model selection section | README names at least one fallback model that requires no Hugging Face token (e.g., `TheBloke` GGUF variants, `facebook/opt-*`, `EleutherAI/gpt-j-6b`) | `DONE` | README Section 2 explicitly names `bartowski/Qwen2.5-7B-Instruct-GGUF` Q4_K_M as the fallback quantized model. Notes state "No token required — public HuggingFace repo (bartowski is a widely-used GGUF publisher)". All three selected models (Qwen2.5-0.5B, OPT-6.7B, Qwen2.5-7B GGUF) are public and require no HF token. Evidence: `results/raw/model_selection.json` field `requires_token: false` for all roles ✓ | If primary model is gated, entire experiment chain fails | High |
 
 ---
 
@@ -177,12 +177,12 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (hardware profile commit)
+Last updated: 2026-06-23 (model selection commit)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
 | A — Repository | 7 | 0 | 5 | 2 | 0 | A3 (README needs real data), A6 (verify before final push) |
-| B — Hardware | 5 | 0 | 3 | 2 | 0 | B2/B3/B5 in progress; B1 DONE, B4 DONE |
+| B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs baseline OOM evidence) |
 | C — Baseline | 4 | 3 | 1 | 0 | 0 | C1 (script ready, not run), C2, C3 |
 | D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script ready, not run), D2 |
 | E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script ready, not run) |
@@ -192,7 +192,7 @@ Last updated: 2026-06-23 (hardware profile commit)
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
 | K — Engineering | 8 | 4 | 4 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **55** | **15** | **4** | **0** | **—** |
+| **TOTAL** | **74** | **55** | **13** | **6** | **0** | **—** |
 
 ---
 
@@ -222,9 +222,9 @@ Last updated: 2026-06-23 (hardware profile commit)
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 4 / 74 requirements** (A1 — repo pushed, A7 — model files gitignored, B1 — hardware profile, B4 — disk space check)  
+**DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)  
 **IN_PROGRESS: 13 / 74 requirements**  
-**NOT_STARTED: 57 / 74 requirements**
+**NOT_STARTED: 55 / 74 requirements**
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD, 38.44 GB free.
 Critical finding: 8.22 GB RAM means naive 7B model load will OOM — expected negative result.

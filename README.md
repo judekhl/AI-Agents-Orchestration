@@ -57,24 +57,70 @@
 
 ## 2. Model Selection Rationale
 
-<!-- REQUIREMENT B2, B3, B4, B5 -->
-<!-- Hardware profile complete (see Section 1). Next step: choose model, justify against
-     8.22 GB RAM constraint, and fill in the _TBD_ fields below after download decision. -->
+<!-- REQUIREMENT B2, B3, B4, B5 — populated from results/raw/model_selection.json on 2026-06-23 -->
 
-**Primary model:** _TBD_  
-**Fallback model (no auth token required):** _TBD_  
-**Parameter count:** _TBD_  
-**Disk size (FP16):** _TBD_ GB  
+Three models are used across experiment roles. No model requires a Hugging Face token.
 
-### Justification
+| Role | Model | Format | Size in RAM | Fits in 8.22 GB? |
+|---|---|---|---|---|
+| **Warm-up / sanity** | `Qwen/Qwen2.5-0.5B-Instruct` | HF FP16 | ~1.5 GB | Yes |
+| **Stress / baseline** | `facebook/opt-6.7b` | HF FP16 | ~14.0 GB | **No — OOM expected** |
+| **Fallback / quantized** | `bartowski/Qwen2.5-7B-Instruct-GGUF` Q4\_K\_M | GGUF | ~4.8 GB | Yes |
 
-_TBD — will explain why this model stresses the hardware without being trivially impossible, referencing measured RAM from hardware_profile.json._
+**Evidence:** [`results/raw/model_selection.json`](results/raw/model_selection.json) ✓  
+**Full report:** [`results/processed/model_selection.md`](results/processed/model_selection.md) ✓
+
+### Warm-up model — `Qwen/Qwen2.5-0.5B-Instruct`
+
+- **Size:** 0.5B parameters, ~1.0 GB on disk (FP16), ~1.5 GB peak RAM
+- **Why chosen:** Proves the inference pipeline works end-to-end on this hardware without
+  risking OOM. Provides a lightweight timing baseline (low TTFT and fast TPOT expected).
+- **Token required:** No — public HuggingFace repo
+- **Disk needed:** ~1.0 GB
+
+### Stress model — `facebook/opt-6.7b`
+
+- **Size:** 6.7B parameters, ~13.4 GB on disk (FP16), ~14.0 GB peak RAM
+- **Why chosen:** At 14 GB RAM required vs 8.22 GB available, this model definitively
+  stresses the hardware. Naive `transformers` baseline load will trigger `MemoryError`
+  or OS swap — this is the expected, documentable negative result that motivates AirLLM.
+  AirLLM can run this model by loading one transformer layer (~0.4 GB) at a time,
+  keeping peak RAM well within the 8.22 GB ceiling.
+- **Why not a smaller stress model:** A 1–3B model might fit in RAM and would not
+  demonstrate the assignment's core challenge. 6.7B ensures genuine hardware strain.
+- **Token required:** No — public HuggingFace repo (`facebook/opt-6.7b`)
+- **Disk needed:** ~13.4 GB (+ ~13.4 GB for AirLLM shards during sharding step)
+
+### Fallback / quantized model — `bartowski/Qwen2.5-7B-Instruct-GGUF` (Q4\_K\_M)
+
+- **Size:** 7B parameters, ~4.4 GB on disk (Q4\_K\_M GGUF), ~4.8 GB peak RAM
+- **Why chosen:** Q4\_K\_M quantization compresses a 7B model to a size that fits
+  comfortably in 8.22 GB RAM (~4.8 GB used, leaving ~3.4 GB for OS and overhead).
+  Enables successful throughput measurement where the baseline OOMs.
+  Also allows direct comparison between quantization levels (Q4 vs Q8 vs FP16)
+  to demonstrate the memory/speed/quality tradeoff.
+- **Alternate quant:** Q8\_0 (~7.7 GB disk, ~8.2 GB RAM) — extremely tight, will be
+  attempted if memory stabilises, but Q4\_K\_M is the primary fallback.
+- **Token required:** No — public HuggingFace repo (bartowski is a widely-used GGUF publisher)
+- **Disk needed:** ~4.4 GB
 
 ### Disk Space Check
 
-**Available disk before any model download:** 38.44 GB (NVMe SSD, measured 2026-06-23)  
-**Model download size:** _TBD_ GB — depends on model chosen in next step  
-**Evidence:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) field `disk_free_gb` ✓
+**Available disk before any model download:** 38.44 GB (NVMe SSD, measured 2026-06-23)
+
+| Download item | GB |
+|---|---|
+| Warm-up: Qwen2.5-0.5B FP16 | ~1.0 |
+| Stress: OPT-6.7B FP16 | ~13.4 |
+| AirLLM shards (OPT-6.7B copy) | ~13.4 |
+| Fallback: Qwen2.5-7B Q4\_K\_M GGUF | ~4.4 |
+| **Total** | **~32.2 GB** |
+| **Remaining after all downloads** | **~6.2 GB** |
+
+Disk budget is feasible. AirLLM shards and original weights can coexist during the sharding
+step; original checkpoint can be deleted afterward to reclaim ~13.4 GB.
+
+**Evidence:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) `disk_free_gb: 38.44` ✓
 
 ---
 

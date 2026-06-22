@@ -1,0 +1,93 @@
+{
+  "hardware_summary": {
+    "ram_total_gb": 8.22,
+    "ram_available_gb_at_probe": 0.87,
+    "gpu_available": false,
+    "disk_free_gb": 38.44,
+    "disk_type": "NVMe SSD",
+    "cpu_model_name": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz"
+  },
+  "selected_models": {
+    "warm_up": "Qwen/Qwen2.5-0.5B-Instruct",
+    "stress": "facebook/opt-6.7b",
+    "fallback": "bartowski/Qwen2.5-7B-Instruct-GGUF"
+  },
+  "selected_fallback_quant": "Q4_K_M",
+  "role_assessments": {
+    "warm_up": {
+      "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+      "format": "hf",
+      "params_b": 0.5,
+      "fp16_disk_gb": 1.0,
+      "fp16_ram_gb": 1.5,
+      "requires_token": false,
+      "role": "warm_up",
+      "feasible_fp16": true,
+      "ram_ok": true,
+      "disk_ok": true,
+      "issues": [],
+      "notes": "0.5B params. Fits easily in 8 GB RAM. Public, no HF token. Used to verify the inference pipeline end-to-end before attempting the stress model."
+    },
+    "stress": {
+      "model_id": "facebook/opt-6.7b",
+      "format": "hf",
+      "params_b": 6.7,
+      "fp16_disk_gb": 13.4,
+      "fp16_ram_gb": 14.0,
+      "requires_token": false,
+      "role": "stress",
+      "feasible_fp16": false,
+      "ram_ok": false,
+      "disk_ok": true,
+      "issues": [
+        "FP16 needs 14.0 GB RAM; only 8.22 GB available. OOM expected on naive load \u2014 valid negative result."
+      ],
+      "notes": "6.7B params. FP16 needs ~14 GB RAM \u2014 exceeds 8.22 GB total on this machine. Naive baseline load will OOM. Public, no token. AirLLM can shard this to ~0.4 GB peak RAM (one layer at a time)."
+    },
+    "fallback": {
+      "model_id": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+      "format": "gguf",
+      "params_b": 7.0,
+      "selected_quant": "Q4_K_M",
+      "gguf_disk_gb": 4.4,
+      "gguf_ram_gb": 4.8,
+      "all_variants": {
+        "Q4_K_M": {
+          "disk_gb": 4.4,
+          "ram_gb": 4.8
+        },
+        "Q6_K": {
+          "disk_gb": 5.7,
+          "ram_gb": 6.1
+        },
+        "Q8_0": {
+          "disk_gb": 7.7,
+          "ram_gb": 8.2
+        }
+      },
+      "requires_token": false,
+      "role": "fallback",
+      "feasible": true,
+      "ram_ok": true,
+      "disk_ok": true,
+      "issues": [],
+      "notes": "7B Qwen2.5-Instruct in GGUF format. bartowski is a reliable GGUF publisher. Q4_K_M: ~4.4 GB disk, ~4.8 GB RAM \u2014 fits in 8.22 GB. Q8_0: ~7.7 GB disk, ~8.2 GB RAM \u2014 extremely tight, may trigger swap. Enables successful throughput measurement where baseline OOMs. Inference via llama-cpp-python; no transformers/torch required."
+    }
+  },
+  "disk_budget": {
+    "disk_free_gb": 38.44,
+    "warm_up_fp16_gb": 1.0,
+    "stress_fp16_gb": 13.4,
+    "airllm_shards_gb": 13.4,
+    "fallback_gguf_gb": 4.4,
+    "total_needed_gb": 32.2,
+    "remaining_after_downloads_gb": 6.24,
+    "feasible": true,
+    "note": "AirLLM shards the stress model into per-layer files in a separate directory. Budget assumes both original weights and shards coexist on disk during sharding. After sharding completes, the original checkpoint can be deleted to reclaim space."
+  },
+  "assignment_rationale": {
+    "warm_up": "Qwen2.5-0.5B-Instruct (0.5B params, ~1.5 GB RAM in FP16) proves the inference pipeline works on this hardware before attempting the stress model. Provides a meaningful but non-stressful timing baseline.",
+    "stress": "OPT-6.7B (6.7B params, ~14 GB RAM in FP16) far exceeds the 8.22 GB RAM ceiling. Naive baseline load will trigger OOM \u2014 this is the expected, documentable negative result that motivates AirLLM and quantization. AirLLM can run this model by loading one layer (~0.4 GB) at a time.",
+    "fallback": "Qwen2.5-7B-Instruct Q4_K_M GGUF (~4.4 GB disk, ~4.8 GB RAM) fits within 8.22 GB RAM and enables a successful throughput measurement. Q4_K_M is the recommended balance of compression and quality. Inference uses llama-cpp-python; no torch or transformers needed."
+  }
+}
