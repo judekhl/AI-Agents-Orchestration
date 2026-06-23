@@ -77,9 +77,9 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `IN_PROGRESS` | Q4_K_M GGUF: `results/raw/quant_q4_k_m_metrics.json` ✓ — 26.24 tok/s, 0.55 GB RAM. FP16 (warm-up baseline) provides the second level implicitly (same model, same prompt, different precision). Second explicit quant run (Q8 or FP16 via transformers) still pending. | Quantization section missing entirely | Critical |
-| E2 | Impact on memory, speed, and output quality measured or documented for each level | Quantization section | Each `results/raw/quant_*_metrics.json` contains RAM peak, TTFT, throughput, and a short output quality note | `IN_PROGRESS` | Q4_K_M: `results/raw/quant_q4_k_m_metrics.json` ✓ — 26.24 tok/s, 0.55 GB, 64 tokens, coherent output. FP16 baseline (warm-up): 6.20 tok/s, 2.73 GB. Direct comparison documented in README Section 6 (+323% throughput, −80% RAM at Q4 vs FP16). | Cannot draw quantization tradeoff graph | High |
-| E3 | Quantization "red line" for quality discussed | Quantization section | README section "Quantization Quality Threshold" discussing at what level output degrades noticeably, with example outputs | `IN_PROGRESS` | README Section 6 "Quantization Quality Threshold" states that Q4_K_M preserves coherence for 0.5B; notes Q2_K as expected degradation point. Example output provided. Full comparison across more levels pending. | Conceptual insight missing | Medium |
+| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `DONE` | Q8_0 GGUF: `results/raw/quant_q8_0_metrics.json` ✓ — 17.56 tok/s, 0.58 GB. Q4_K_M GGUF: `results/raw/quant_q4_k_m_metrics.json` ✓ — 26.24 tok/s, 0.55 GB. FP16 from warm-up baseline is a third level. Three-level comparison table in README Section 6. | Quantization section missing entirely | Critical |
+| E2 | Impact on memory, speed, and output quality measured or documented for each level | Quantization section | Each `results/raw/quant_*_metrics.json` contains RAM peak, TTFT, throughput, and a short output quality note | `DONE` | All three levels documented with real data. README Section 6 three-level comparison table: FP16 (6.20 tok/s, 2.73 GB) → Q8_0 (17.56 tok/s, 0.58 GB) → Q4_K_M (26.24 tok/s, 0.55 GB). Quality notes in all JSON files. | Cannot draw quantization tradeoff graph | High |
+| E3 | Quantization "red line" for quality discussed | Quantization section | README section "Quantization Quality Threshold" discussing at what level output degrades noticeably, with example outputs | `DONE` | README Section 6 "Quantization Quality Threshold" ✓ — Q8 and Q4 both produce coherent outputs; degradation expected at Q2_K or below; example outputs from both levels compared. | Conceptual insight missing | Medium |
 
 ---
 
@@ -177,7 +177,7 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (extension + streaming TPOT complete)
+Last updated: 2026-06-23 (Q8_0 quantization complete — 51/74 DONE, ~83/100)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -185,14 +185,14 @@ Last updated: 2026-06-23 (extension + streaming TPOT complete)
 | B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs stress OOM evidence) |
 | C — Baseline | 4 | 0 | 4 | 0 | 0 | C1 (warm-up done, stress pending), C2, C3 (partial) |
 | D — AirLLM | 5 | 0 | 0 | 4 | 1 | D2 (BLOCKED — no GPU + model format mismatch) |
-| E — Quantization | 3 | 0 | 3 | 0 | 0 | E1 (Q4_K_M done; second level pending) |
+| E — Quantization | 3 | 0 | 0 | 3 | 0 | — |
 | F — Metrics | 8 | 0 | 2 | 6 | 0 | F2 (TPOT null), F8 (quality note present, not scored) |
 | G — Graphs | 9 | 1 | 0 | 7 | 0 | G3 (TPOT — no streaming hook) |
 | H — Economics | 9 | 1 | 0 | 8 | 0 | H8 (optional cloud GPU comparison) |
 | I — Concepts | 13 | 0 | 1 | 12 | 0 | I2 (TPOT measured for Q4 only, baseline null) |
 | J — Extension | 3 | 0 | 0 | 3 | 0 | — |
 | K — Engineering | 8 | 2 | 5 | 1 | 0 | K5 (DONE — all numbers trace to raw files) |
-| **TOTAL** | **74** | **3** | **22** | **48** | **1** | **—** |
+| **TOTAL** | **74** | **3** | **19** | **51** | **1** | **—** |
 
 ---
 
@@ -222,8 +222,8 @@ Last updated: 2026-06-23 (extension + streaming TPOT complete)
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 48 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1, F2, F3, F4, F5, F6, F7, G1, G2, G3, G4, G5, G6, G7, G8, H1–H7, H9, I1, I3, I4, I5–I13, J1, J2, J3, K5, K8)
-**IN_PROGRESS: 22 / 74 requirements** (A2–A6, B3, C1–C4, E1–E3, F8, I2, K1–K4, K7)
+**DONE: 51 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, E1, E2, E3, F1, F2, F3, F4, F5, F6, F7, G1, G2, G3, G4, G5, G6, G7, G8, H1–H7, H9, I1, I3, I4, I5–I13, J1, J2, J3, K5, K8)
+**IN_PROGRESS: 19 / 74 requirements** (A2–A6, B3, C1–C4, F8, I2, K1–K4, K7)
 **NOT_STARTED: 3 / 74 requirements** (H8, K6, G9)
 **BLOCKED: 1 / 74 requirements** (D2 — AirLLM cannot run: no GPU + model format constraint)
 
@@ -236,8 +236,9 @@ Graphs: 6 figures generated in `figures/` ✓; summary_table.csv ✓; economic_a
 Economic analysis: break-even ~261K req/month (hardware+electricity). Full analysis in Section 8.
 Self-assessment: ~65/100, written in README Section 12.
 
-**Estimated ~80/100.** Current state:
-- Extension J1–J3: DONE — prompt-length scaling experiment, real streaming TPOT measurement
-- F2/G3/I4: DONE — real TPOT via streaming (31.0 ms/token)
-- AirLLM: BLOCKED (documented honest negative result — D3 satisfied)
-- Remaining gaps: E1 (second explicit quant level), F8 (quality scoring), screenshots
+**Estimated ~83/100.** Current state:
+- Extension J1–J3: DONE — prompt-length scaling experiment, real streaming TPOT
+- E1/E2/E3: DONE — Q8_0 (17.56 tok/s, 0.58 GB) + Q4_K_M (26.24 tok/s, 0.55 GB) + FP16 baseline; three-level comparison
+- F2/G3/I4: DONE — real TPOT 31.0 ms/token via streaming
+- AirLLM: BLOCKED (documented — D3 satisfied)
+- Remaining gaps: F8 (quality scoring), screenshots (A5, explained), baseline TPOT

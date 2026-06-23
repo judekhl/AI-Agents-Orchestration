@@ -1,3 +1,5 @@
 scenario,ttft_seconds,tpot_ms,throughput_tokens_per_sec,peak_ram_gb,total_runtime_seconds,peak_vram_note
 baseline,10.3307,,6.1951,2.728,10.3307,N/A — no CUDA/discrete GPU
+quant_q8_0,3.6455,,17.5557,0.579,3.6455,N/A — no CUDA/discrete GPU
 quant_q4_k_m,2.4392,,26.2384,0.55,2.4392,N/A â€” no CUDA/discrete GPU
+quant_q4_k_m,0.2283,30.994,29.34,0.554,2.1813,N/A — no CUDA/discrete GPU

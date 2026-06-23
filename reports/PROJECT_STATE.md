@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (extension + streaming TPOT complete — ~80/100 estimated)
+Last updated: 2026-06-23 (Q8_0 second quant level complete — ~83/100 estimated)
 
 ---
 
@@ -7,12 +7,12 @@ Last updated: 2026-06-23 (extension + streaming TPOT complete — ~80/100 estima
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 48 | 74 |
-| IN_PROGRESS | 22 | 74 |
+| DONE | 51 | 74 |
+| IN_PROGRESS | 19 | 74 |
 | NOT_STARTED | 3 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1–F7, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K5, K8
+DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, E1–E3, F1–F7, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K5, K8
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
