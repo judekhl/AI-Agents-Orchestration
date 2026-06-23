@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (final readiness review — 69/74 DONE, 85–90/100 estimated)
+Last updated: 2026-06-23 (final grade-improvement sprint — 72/74 DONE, 88–93/100 estimated)
 
 ---
 
@@ -7,15 +7,14 @@ Last updated: 2026-06-23 (final readiness review — 69/74 DONE, 85–90/100 est
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 69 | 74 |
-| IN_PROGRESS | 2 | 74 |
-| NOT_STARTED | 2 | 74 |
+| DONE | 72 | 74 |
+| IN_PROGRESS | 1 | 74 |
+| NOT_STARTED | 0 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K1–K5, K7, K8
+DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G9, H1–H9, I1, I3–I13, J1–J3, K1–K8
 
-IN_PROGRESS: I2 (TPOT: Q4 streaming done; FP16 baseline null), K6 (try/except present in all scripts; OOM handler partial)
-NOT_STARTED: G9 (roofline — optional), H8 (cloud GPU comparison — optional)
+IN_PROGRESS: I2 (TPOT: Q4 streaming done; FP16 baseline null — documented limitation)
 BLOCKED: D2 (AirLLM no GPU)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
@@ -47,11 +46,8 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Remaining Gaps (honest accounting)
 
-- **F2 / I2** — FP16 baseline TPOT is null (non-streaming inference; TTFT ≈ total runtime)
-- **K6** — Error handling is partial (some try/except, no OOM handler for stress; stress failed before load)
-- **G9** — Roofline model graph not generated (optional requirement)
-- **H8** — Cloud GPU cost comparison not done (optional)
-- **D2** — AirLLM permanently BLOCKED (no CUDA GPU)
+- **I2** — FP16 baseline TPOT is null (non-streaming inference; TTFT ≈ total runtime — documented limitation)
+- **D2** — AirLLM permanently BLOCKED (no CUDA GPU — honest negative result, fully documented)
 
 ---
 
