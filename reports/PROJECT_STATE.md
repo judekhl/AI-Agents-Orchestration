@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23
+Last updated: 2026-06-23 (AirLLM compat check complete — BLOCKED)
 
 ---
 
@@ -27,6 +27,7 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 6. Environment setup (`results/raw/environment_setup.json`) — all packages installed
 7. Warm-up baseline — `results/raw/baseline_warmup_metrics.json` — 6.2 tok/s, 2.73 GB RAM, no OOM
 8. Stress baseline — `results/raw/baseline_stress_failure.json` — TimeoutError after 1200s; download stalled at 4 GB / 13.5 GB; confirms OOM risk on load
+9. AirLLM compatibility check — `results/raw/airllm_compatibility.json` — BLOCKED: requires sharded model format (large models only) and CUDA GPU; neither available. Also found bug in run_airllm.py (wrong kwarg `cache_dir` → should be `layer_shards_saving_path`).
 
 ---
 
@@ -34,7 +35,7 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 - [x] Warm-up baseline inference — Qwen2.5-0.5B → `results/raw/baseline_warmup_metrics.json` ✓
 - [x] Stress baseline — OPT-6.7B → `results/raw/baseline_stress_failure.json` ✓ (TimeoutError: download stalled at 4/13.5 GB; OOM expected on load)
-- [ ] AirLLM experiment — OPT-6.7B via layer-sharding → `results/raw/airllm_metrics.json`
+- [BLOCKED] AirLLM experiment — BLOCKED: requires GPU (cuda:0) + sharded model format; `results/raw/airllm_compatibility.json` documents both blockers
 - [ ] Quantization experiment — Q4_K_M + Q8_0 → `results/raw/quant_*_metrics.json`
 - [ ] Benchmark summary table — `results/processed/summary_table.csv`
 - [ ] Graph generation — `figures/*.png` (7 graphs)
@@ -48,10 +49,11 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Latest Safe Next Step
 
-AirLLM compatibility check only — no full OPT-6.7B download.
-- Verify airllm imports; inspect if script runs with a tiny model (5-min timeout max)
-- If AirLLM requires full OPT-6.7B, document as BLOCKED and move to quantization
-- Output: `results/raw/airllm_compatibility.json`
+Quantization experiment — llama.cpp + Qwen2.5-7B-Instruct-GGUF (Q4_K_M then Q8_0).
+- Download `bartowski/Qwen2.5-7B-Instruct-GGUF` Q4_K_M (~4.4 GB) to `C:\ai-model-cache\gguf\`
+- Run inference benchmark via llama-cpp-python; record tok/s, RAM, latency
+- Repeat with Q8_0 variant if time allows
+- Output: `results/raw/quant_q4km_metrics.json`, `results/raw/quant_q8_metrics.json`
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 

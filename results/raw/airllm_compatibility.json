@@ -1,0 +1,45 @@
+{
+  "scenario": "airllm_compatibility_check",
+  "date": "2026-06-23",
+  "model_tested": "Qwen/Qwen2.5-0.5B-Instruct",
+  "intended_model": "facebook/opt-6.7b",
+  "result": "BLOCKED",
+
+  "import_check": {
+    "airllm_import": "PASS",
+    "airllm_AutoModel_import": "PASS",
+    "transformers_AutoTokenizer": "PASS",
+    "airllm_detected_class": "AirLLMQWen2"
+  },
+
+  "api_findings": {
+    "correct_init_params": [
+      "model_local_path_or_repo_id",
+      "device (default: cuda:0)",
+      "dtype (default: torch.float16)",
+      "max_seq_len (default: 512)",
+      "layer_shards_saving_path",
+      "hf_token",
+      "prefetching",
+      "delete_original"
+    ],
+    "script_bug": "run_airllm.py passes 'cache_dir' kwarg which AirLLM does not accept; correct param is 'layer_shards_saving_path'",
+    "gpu_default": "AirLLM defaults device='cuda:0' — no GPU available on this machine"
+  },
+
+  "blocker_1_model_format": {
+    "description": "AirLLM asserts model.safetensors.index.json must exist. This file is only present in large models that HuggingFace stores as multiple shards.",
+    "small_model_format": "Qwen2.5-0.5B uses a single model.safetensors (no index file) — incompatible with AirLLM's sharding logic.",
+    "large_model_format": "OPT-6.7B would have model.safetensors.index.json, but requires full 13.5 GB download (only 4 GB cached — blocked).",
+    "error_observed": "AssertionError: model.safetensors.index.json should exist."
+  },
+
+  "blocker_2_no_gpu": {
+    "description": "AirLLM default device is cuda:0. CPU support is not officially documented. Even if CPU were used, float16 is not supported on CPU without special handling.",
+    "hardware": "No CUDA GPU — Intel i5-1135G7 integrated graphics only"
+  },
+
+  "conclusion": "AirLLM cannot run on this machine within time/resource constraints. Two hard blockers: (1) tiny models lack the sharded format AirLLM requires; (2) large models (OPT-6.7B) require download of ~13.5 GB which previously stalled. Additionally no GPU. Marking AirLLM experiment as BLOCKED.",
+
+  "next_step": "Proceed to quantization experiment (llama.cpp / GGUF with Qwen2.5-7B Q4_K_M)."
+}
