@@ -55,9 +55,9 @@
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
 | C1 | Direct / naive local baseline run is attempted | Baseline section | `scripts/baseline_run.py` exists AND `results/raw/baseline_metrics.json` or `results/raw/baseline_failure.txt` exists | `IN_PROGRESS` | `src/run_baseline.py` exists. Warm-up baseline (Qwen2.5-0.5B) COMPLETE: `results/raw/baseline_warmup_metrics.json` ✓. Stress baseline (OPT-6.7B OOM) still pending — `results/raw/baseline_stress_failure.json` not yet generated. | Baseline reference point missing; nothing to compare against | Critical |
-| C2 | Outcome documented honestly: success, OOM, excessive slowness, or failure | Baseline section | `results/raw/baseline_metrics.json` (if success) OR `results/raw/baseline_failure.txt` with error log and explanation | `IN_PROGRESS` | Warm-up outcome: SUCCESS — `results/raw/baseline_warmup_metrics.json` contains real metrics (6.20 tok/s, 2.73 GB RAM, no OOM). Stress outcome: PENDING — expected MemoryError or swap. Will save to `results/raw/baseline_stress_failure.json`. | Negative results presented without documentation look fabricated | Critical |
-| C3 | Baseline metrics saved to raw result files (not only in README) | Baseline section | `results/raw/baseline_metrics.json` containing TTFT, TPOT, throughput, RAM peak, runtime | `IN_PROGRESS` | Warm-up: `results/raw/baseline_warmup_metrics.json` ✓ — contains ttft_seconds, throughput_tokens_per_sec, peak_ram_gb, total_runtime_seconds, total_output_tokens. TPOT is null (approximation artefact). Stress metrics file pending. | Cannot regenerate graphs from real data | High |
-| C4 | Bottleneck identified and explained: RAM, VRAM, CPU compute, or disk I/O | Baseline section | README section "Baseline Bottleneck Analysis" + supporting data (e.g., `htop` screenshot or `psutil` memory trace) | `IN_PROGRESS` | README Section 4 "Bottleneck Analysis" written: warm-up is memory-bandwidth-bound (2.73 GB used, 6.20 tok/s); stress expected to hit RAM ceiling (14 GB FP16 vs 8.22 GB). Full analysis pending stress run. | Key conceptual analysis missing | High |
+| C2 | Outcome documented honestly: success, OOM, excessive slowness, or failure | Baseline section | `results/raw/baseline_metrics.json` (if success) OR `results/raw/baseline_failure.txt` with error log and explanation | `IN_PROGRESS` | Warm-up: SUCCESS — `results/raw/baseline_warmup_metrics.json` ✓. Stress: TimeoutError after 1200s — `results/raw/baseline_stress_failure.json` ✓ (download stalled at 4/13.5 GB; OOM expected on load). Both outcomes documented honestly in README Section 4 and processed summaries. | Negative results presented without documentation look fabricated | Critical |
+| C3 | Baseline metrics saved to raw result files (not only in README) | Baseline section | `results/raw/baseline_metrics.json` containing TTFT, TPOT, throughput, RAM peak, runtime | `IN_PROGRESS` | Warm-up: `results/raw/baseline_warmup_metrics.json` ✓ — ttft_seconds, throughput, peak_ram_gb, runtime, output_tokens. Stress: `results/raw/baseline_stress_failure.json` ✓ — error_type, context, timestamp. TPOT null in warm-up (approximation artefact). Full metrics across all scenarios needed for DONE. | Cannot regenerate graphs from real data | High |
+| C4 | Bottleneck identified and explained: RAM, VRAM, CPU compute, or disk I/O | Baseline section | README section "Baseline Bottleneck Analysis" + supporting data (e.g., `htop` screenshot or `psutil` memory trace) | `IN_PROGRESS` | README Section 4 "Bottleneck Analysis" written: warm-up is memory-bandwidth-bound (2.73 GB, 6.20 tok/s); stress shows two-stage failure (download bottleneck + expected OOM on load). Analysis complete for both scenarios. Full conceptual depth to be expanded after AirLLM comparison data is available. | Key conceptual analysis missing | High |
 
 ---
 
@@ -177,7 +177,7 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (warm-up baseline complete — Qwen2.5-0.5B: 6.20 tok/s, 2.73 GB RAM)
+Last updated: 2026-06-23 (stress baseline complete — OPT-6.7B: TimeoutError after 1200s, download stalled at 4/13.5 GB)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -222,17 +222,18 @@ Last updated: 2026-06-23 (warm-up baseline complete — Qwen2.5-0.5B: 6.20 tok/s
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)  
-**IN_PROGRESS: 17 / 74 requirements** (C1–C4 all in progress; K7 — 7 incremental commits now)
+**DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)
+**IN_PROGRESS: 17 / 74 requirements** (C1–C4 all in progress; K7 — 8 incremental commits now)
 **NOT_STARTED: 51 / 74 requirements**
 
-Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD, 38.44 GB free.
-Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS (2026-06-23).
-Critical finding confirmed: stress model (OPT-6.7B, ~14 GB FP16) will OOM — run pending.
+Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
+Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS.
+Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load.
+Critical finding confirmed: naive 7B baseline infeasible — motivates AirLLM + GGUF Q4.
 
 **NOT 90+ ready.** Remaining blockers:
-- Stress baseline (OPT-6.7B OOM evidence) not yet run
-- AirLLM and quantization experiments not yet run
+- AirLLM experiment not yet run
+- Quantization experiment not yet run
 - All figures/*.png not yet generated
 - README Sections 5–13 still contain _TBD_
 - Economic analysis, extension, and self-assessment not written

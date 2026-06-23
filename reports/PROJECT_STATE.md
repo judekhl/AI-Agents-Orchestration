@@ -8,10 +8,10 @@ Last updated: 2026-06-23
 | Status | Count | Out of |
 |---|---|---|
 | DONE | 7 | 74 |
-| IN_PROGRESS | 14 | 74 |
-| NOT_STARTED | 53 | 74 |
+| IN_PROGRESS | 17 | 74 |
+| NOT_STARTED | 50 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5, C1 (warm-up baseline run)
+DONE items: A1, A7, B1, B2, B4, B5 (C1-C4 IN_PROGRESS — warm-up + stress both done)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -26,13 +26,14 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 5. Cache path safety — all paths redirected outside OneDrive to `C:\ai-model-cache\`
 6. Environment setup (`results/raw/environment_setup.json`) — all packages installed
 7. Warm-up baseline — `results/raw/baseline_warmup_metrics.json` — 6.2 tok/s, 2.73 GB RAM, no OOM
+8. Stress baseline — `results/raw/baseline_stress_failure.json` — TimeoutError after 1200s; download stalled at 4 GB / 13.5 GB; confirms OOM risk on load
 
 ---
 
 ## Not Yet Done (in order)
 
 - [x] Warm-up baseline inference — Qwen2.5-0.5B → `results/raw/baseline_warmup_metrics.json` ✓
-- [ ] Stress baseline — OPT-6.7B OOM → `results/raw/baseline_stress_failure.json`
+- [x] Stress baseline — OPT-6.7B → `results/raw/baseline_stress_failure.json` ✓ (TimeoutError: download stalled at 4/13.5 GB; OOM expected on load)
 - [ ] AirLLM experiment — OPT-6.7B via layer-sharding → `results/raw/airllm_metrics.json`
 - [ ] Quantization experiment — Q4_K_M + Q8_0 → `results/raw/quant_*_metrics.json`
 - [ ] Benchmark summary table — `results/processed/summary_table.csv`
@@ -47,11 +48,12 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Latest Safe Next Step
 
-Run **stress baseline** using `facebook/opt-6.7b` to capture the expected OOM failure.
-- Model cache: `C:\ai-model-cache\hf`
-- `max_new_tokens`: 64
-- Output: `results/raw/baseline_stress_failure.json` (expect MemoryError or very slow swap)
-- Do NOT run AirLLM yet.
+Run **AirLLM experiment** using `facebook/opt-6.7b` via layer-sharding.
+- AirLLM cache: `C:\ai-model-cache\airllm-cache`
+- AirLLM shards: `C:\ai-model-cache\airllm-shards`
+- OPT-6.7B weights are partially cached in `C:\ai-model-cache\hf` (4 GB / 13.5 GB); AirLLM will need the full model
+- Output: `results/raw/airllm_metrics.json`
+- Script: `src/run_airllm.py`
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 

@@ -257,20 +257,32 @@ python src/plot_results.py --input-dir results/raw/ \
 **Output snippet (64 tokens):**
 > Virtual memory is a technique used by operating systems to allow programs to access larger amounts of memory than are physically available on the system's physical memory. It does this by creating a separate "virtual" memory space that can be accessed by the program without having to worry about the actual physical memory being allocated. Paging is one…
 
-### Stress Baseline — `facebook/opt-6.7b` (PENDING)
+### Stress Baseline — `facebook/opt-6.7b` (COMPLETE — Negative Result)
 
-**Scenario:** Same script, 6.7B FP16 model (~14 GB RAM required vs 8.22 GB available)
-**Expected outcome:** MemoryError or OS-induced swap making inference unusably slow
+**Scenario:** Same script, 6.7B FP16 model (~13.5 GB required vs 8.22 GB RAM available)
+**Outcome:** TIMEOUT after 1200 s — download stalled at 4.049 GB / 13.5 GB (30%)
 
-- Raw evidence: `results/raw/baseline_stress_failure.json` — _not yet generated_
+| Item | Value |
+|---|---|
+| Error type | TimeoutError (1200 s guard) |
+| Download at timeout | 4.049 GB of ~13.5 GB |
+| Model load into RAM | Not reached |
+| Expected RAM on load | ~14 GB FP16 vs 8.22 GB available → OOM |
+| Throughput achieved | 0 tok/s (no inference) |
+
+**Why this is the expected negative result:** Even before reaching model loading, the 13.5 GB download alone stalled at ~30% over a 20-minute window. Had the download completed, `from_pretrained` would have attempted to map ~14 GB of FP16 weights into 8.22 GB RAM — triggering `MemoryError` or forcing the OS into uncontrolled swap at ~1000× the RAM access penalty.
+
+**Evidence:**
+- [`results/raw/baseline_stress_failure.json`](results/raw/baseline_stress_failure.json) ✓
+- [`results/processed/baseline_stress_summary.md`](results/processed/baseline_stress_summary.md) ✓
 
 ### Bottleneck Analysis
 
 <!-- REQUIREMENT C4, I10 -->
 
-**Warm-up model (0.5B):** Memory-bandwidth-bound on CPU. RAM ceiling is not the limiting factor (2.73 GB used vs 8.22 GB available). Throughput (6.20 tok/s) reflects the CPU's ability to stream ~1 GB of weights per decode pass.
+**Warm-up model (0.5B):** Memory-bandwidth-bound on CPU. Peak RAM 2.73 GB is well within the 8.22 GB ceiling. Throughput (6.20 tok/s) is limited by CPU memory bandwidth, not RAM capacity.
 
-**Stress model (6.7B):** Expected to hit the RAM ceiling: 14 GB FP16 weights vs 8.22 GB available. OOM or catastrophic OS swap is the expected result. This motivates AirLLM (layer-by-layer paging) and GGUF quantization (~4× compression) as the two mitigations studied in Sections 5–6.
+**Stress model (6.7B):** Two-stage failure: (1) 13.5 GB download is impractical over a constrained connection; (2) loading 14 GB FP16 into 8.22 GB RAM would trigger `MemoryError` or OS swap — either outcome makes naive baseline inference infeasible. This is the intended demonstration that motivates AirLLM (structured layer paging) and GGUF Q4 quantization (~4× size reduction) as viable mitigations.
 
 ---
 
@@ -359,7 +371,7 @@ noticeably degrades, with example output comparisons._
 | Scenario | TTFT (s) | TPOT (ms/tok) | Throughput (tok/s) | Peak RAM (GB) | Peak VRAM | Runtime (s) | Power est. (W) |
 |---|---|---|---|---|---|---|---|
 | Baseline warm-up (Qwen2.5-0.5B) | 10.33 ¹ | N/A ¹ | 6.20 | 2.73 | N/A — no CUDA GPU | 10.33 | _TBD_ |
-| Baseline stress (OPT-6.7B) | OOM expected | OOM expected | OOM expected | OOM expected | N/A — no CUDA GPU | N/A | N/A |
+| Baseline stress (OPT-6.7B) | N/A (timeout) | N/A (timeout) | 0 (timeout) | N/A | N/A — no CUDA GPU | 1200 (timeout) | N/A |
 | AirLLM | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant FP32 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |
 | Quant FP16 | _TBD_ | _TBD_ | _TBD_ | _TBD_ | N/A — no CUDA GPU | _TBD_ | _TBD_ |

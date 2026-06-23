@@ -15,7 +15,10 @@ Usage:
 """
 
 import argparse
+import json
+import os
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -32,7 +35,8 @@ from src.benchmark_common import (
 )
 
 
-def run_baseline(config: dict, output_path: str):
+def run_baseline(config: dict, output_path: str,
+                 timeout_seconds: int = 0, max_ram_gb: float = 0.0):
     model_id = config.get("model_id", "facebook/opt-6.7b")
     max_new_tokens = config.get("max_new_tokens", 200)
     device = config.get("device", "cpu")
@@ -40,11 +44,55 @@ def run_baseline(config: dict, output_path: str):
     hf_token = config.get("hf_token")
     model_cache_dir = config.get("model_cache_dir", "./models")
 
+    # Derive failure path: _metrics.json → _failure.json
+    failure_path = output_path.replace("_metrics.json", "_failure.json")
+    if failure_path == output_path:
+        failure_path = output_path.rsplit(".", 1)[0] + "_failure.json"
+
     print(f"=== Baseline Experiment ===")
-    print(f"Model:  {model_id}")
-    print(f"Device: {device}")
+    print(f"Model:       {model_id}")
+    print(f"Device:      {device}")
+    print(f"Timeout:     {timeout_seconds}s" if timeout_seconds else "Timeout:     none")
+    print(f"RAM abort:   {max_ram_gb:.1f} GB" if max_ram_gb else "RAM abort:   none")
+    print(f"Failure out: {failure_path}")
     print(f"Prompt: {prompt[:80]}...")
     print()
+
+    # ── Timeout guard (daemon thread calls os._exit on expiry) ──────────────
+    if timeout_seconds > 0:
+        def _on_timeout():
+            print(f"\nTIMEOUT: {timeout_seconds}s elapsed — saving failure and exiting.")
+            save_failure(
+                TimeoutError(f"Run exceeded {timeout_seconds}s timeout"),
+                failure_path, scenario="baseline",
+                context=f"Timeout guard fired after {timeout_seconds}s. model_id={model_id}",
+            )
+            os._exit(5)
+        _timer = threading.Timer(timeout_seconds, _on_timeout)
+        _timer.daemon = True
+        _timer.start()
+
+    # ── RAM abort guard (background thread) ─────────────────────────────────
+    if max_ram_gb > 0:
+        def _ram_guard():
+            try:
+                import psutil
+                proc = psutil.Process(os.getpid())
+                while True:
+                    time.sleep(2.0)
+                    rss = proc.memory_info().rss / 1e9
+                    if rss > max_ram_gb:
+                        print(f"\nRAM ABORT: {rss:.2f} GB > {max_ram_gb:.1f} GB threshold — saving failure.")
+                        save_failure(
+                            MemoryError(f"RAM {rss:.2f} GB exceeded abort threshold {max_ram_gb:.1f} GB"),
+                            failure_path, scenario="baseline",
+                            context=f"RAM abort guard: {rss:.3f} GB > {max_ram_gb} GB. model_id={model_id}",
+                        )
+                        os._exit(4)
+            except Exception:
+                pass
+        _ram_thread = threading.Thread(target=_ram_guard, daemon=True)
+        _ram_thread.start()
 
     # ── Import heavy dependencies inside the function so the module is importable
     # even when torch/transformers are not installed.
@@ -52,8 +100,7 @@ def run_baseline(config: dict, output_path: str):
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError as e:
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
-                     scenario="baseline",
+        save_failure(e, failure_path, scenario="baseline",
                      context="torch or transformers not installed")
         print(f"IMPORT ERROR: {e}")
         print("Install with: pip install -e '.[transformers]'")
@@ -157,8 +204,7 @@ def run_baseline(config: dict, output_path: str):
 
     except MemoryError as e:
         ram_sampler.stop()
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
-                     scenario="baseline",
+        save_failure(e, failure_path, scenario="baseline",
                      context=f"MemoryError loading {model_id} on {device}")
         print(f"\nOUT OF MEMORY: {e}")
         print("This is a valid negative result — documented in failure file.")
@@ -166,8 +212,7 @@ def run_baseline(config: dict, output_path: str):
 
     except Exception as e:
         ram_sampler.stop()
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
-                     scenario="baseline", context=str(e))
+        save_failure(e, failure_path, scenario="baseline", context=str(e))
         print(f"\nFAILED: {e}")
         sys.exit(3)
 
@@ -176,13 +221,19 @@ def main():
     parser = argparse.ArgumentParser(description="Run baseline inference experiment.")
     parser.add_argument("--config", default="experiments/configs/default_config.json")
     parser.add_argument("--output", default="results/raw/baseline_metrics.json")
+    parser.add_argument("--timeout-seconds", type=int, default=0,
+                        help="Abort after N seconds (0 = no timeout)")
+    parser.add_argument("--max-ram-gb", type=float, default=0.0,
+                        help="Abort if process RAM exceeds N GB (0 = no limit)")
     args = parser.parse_args()
 
     cfg = load_env_config()
     if Path(args.config).exists():
         cfg.update(load_config(args.config))
 
-    run_baseline(cfg, args.output)
+    run_baseline(cfg, args.output,
+                 timeout_seconds=args.timeout_seconds,
+                 max_ram_gb=args.max_ram_gb)
 
 
 if __name__ == "__main__":

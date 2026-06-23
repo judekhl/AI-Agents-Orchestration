@@ -1,0 +1,8 @@
+{
+  "scenario": "baseline",
+  "timestamp_utc": "2026-06-23T00:20:17Z",
+  "error_type": "TimeoutError",
+  "error_message": "Run exceeded 1200s timeout",
+  "traceback": "NoneType: None\n",
+  "context": "Timeout guard fired after 1200s. model_id=facebook/opt-6.7b"
+}
