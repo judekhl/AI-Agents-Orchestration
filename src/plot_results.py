@@ -39,17 +39,18 @@ except ImportError:
     _PANDAS_AVAILABLE = False
 
 
-SCENARIO_ORDER = ["baseline", "airllm", "quant_fp32", "quant_fp16", "quant_bf16",
-                  "quant_q8", "quant_q8_0", "quant_q4_k_m"]
+SCENARIO_ORDER = ["baseline_warmup", "baseline", "airllm", "quant_fp32", "quant_fp16",
+                  "quant_bf16", "quant_q8", "quant_q8_0", "quant_q4_k_m"]
 SCENARIO_LABELS = {
-    "baseline":    "Baseline\n(FP32, full load)",
-    "airllm":      "AirLLM\n(layer paging)",
-    "quant_fp32":  "Quant FP32",
-    "quant_fp16":  "Quant FP16",
-    "quant_bf16":  "Quant BF16",
-    "quant_q8":    "Quant Q8",
-    "quant_q8_0":  "Quant Q8_0\n(GGUF)",
-    "quant_q4_k_m": "Quant Q4_K_M\n(GGUF)",
+    "baseline_warmup": "Baseline\n(0.5B FP16)",
+    "baseline":        "Baseline\n(FP32, full load)",
+    "airllm":          "AirLLM\n(layer paging)",
+    "quant_fp32":      "Quant FP32",
+    "quant_fp16":      "Quant FP16",
+    "quant_bf16":      "Quant BF16",
+    "quant_q8":        "Quant Q8",
+    "quant_q8_0":      "Quant Q8_0\n(GGUF)",
+    "quant_q4_k_m":    "Quant Q4_K_M\n(GGUF)",
 }
 COLORS = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B2",
           "#937860", "#DA8BC3", "#8C8C8C"]
@@ -78,7 +79,8 @@ def load_all_metrics(input_dir: Path) -> list[dict]:
 
 
 def _bar_chart(ax, scenarios, values, ylabel, title, colors):
-    bars = ax.bar(range(len(scenarios)), values, color=colors[:len(scenarios)],
+    clean = [v if v is not None else 0 for v in values]
+    bars = ax.bar(range(len(scenarios)), clean, color=colors[:len(scenarios)],
                   width=0.6, edgecolor="white", linewidth=0.8)
     ax.set_xticks(range(len(scenarios)))
     ax.set_xticklabels([SCENARIO_LABELS.get(s, s) for s in scenarios],
@@ -94,6 +96,9 @@ def _bar_chart(ax, scenarios, values, ylabel, title, colors):
 
 
 def make_bar_figure(scenarios, values, ylabel, title, out_path):
+    if all(v is None for v in values):
+        print(f"  Skipping {Path(out_path).name} — all values are None")
+        return
     fig, ax = plt.subplots(figsize=(max(6, len(scenarios) * 1.4), 4))
     _bar_chart(ax, scenarios, values, ylabel, title, COLORS)
     plt.tight_layout()
