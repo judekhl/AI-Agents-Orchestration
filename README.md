@@ -846,7 +846,7 @@ ensuring the data displayed matches the actual raw outputs exactly.
 - **Section F (metrics):** ~95% — TTFT/TPOT/throughput/RAM/VRAM/quality all done for all runnable scenarios; FP16 TPOT 387 ms measured via streaming.
 - **Section G (graphs):** ~97% — 10 graphs (TTFT, throughput, memory, runtime, quant tradeoff, economic, TPOT, extension, quality, roofline); all G1–G9 complete.
 - **Section H (economics):** ~93% — full analysis with break-even graph + cloud GPU comparison (H8); prices labeled assumptions.
-- **Section I (concepts):** ~88% — all 13 concepts addressed with real measured data; I2 TPOT partial (Q4 streaming done; baseline null).
+- **Section I (concepts):** ~95% — all 13 concepts addressed with real measured data; I2 DONE: FP16 TPOT 387 ms/token and Q4_K_M TPOT 31 ms/token both measured with real per-token streaming timestamps.
 - **Section J (extension):** ~92% — prompt-length scaling complete; 3-panel graph; results table; conceptual connections to prefill/decode.
 - **Section K (engineering):** ~92% — clean scripts; argparse; raw/processed separation; 21+ incremental commits; K6 comprehensive error handling verified.
 
