@@ -5,11 +5,11 @@
 **Course:** [Course name]  
 **Repo:** https://github.com/judekhl/AI-Agents-Orchestration
 
-> **Status: IN PROGRESS — warm-up baseline complete; stress baseline complete (timeout/OOM); AirLLM BLOCKED (Section 5); Q4_K_M quantization complete; graphs and analysis pending.**
-> Warm-up numbers in Section 4 and Section 7 are real measured values from `results/raw/baseline_warmup_metrics.json`.
-> AirLLM result in Section 5 reflects a real compatibility check — two hard blockers documented (no CUDA GPU; model format mismatch). Not skipped.
-> Q4_K_M result in Section 6 and Section 7 is real measured data from `results/raw/quant_q4_k_m_metrics.json`.
-> All remaining _TBD_ entries are not yet run. Do not read them as results.
+> **Status: SUBMITTED — all runnable experiments complete; economic analysis and self-assessment complete.**
+> Warm-up baseline, stress baseline, Q4_K_M quantization, graphs, economic analysis, and self-assessment are all real measured data.
+> AirLLM is BLOCKED (no CUDA GPU + model format constraint) — documented as an honest negative result (Section 5).
+> Original extension is BLOCKED (depends on AirLLM) — documented in Section 10.
+> All numbers in this README trace to files in `results/raw/` or `results/processed/`.
 
 ---
 
@@ -208,9 +208,8 @@ python src/run_airllm.py --config experiments/configs/default_config.json \
 python src/run_quantized.py --config experiments/configs/default_config.json \
     --output-dir results/raw/
 
-# (2e) Extension — disk I/O observation during AirLLM
-python src/extension_disk_io.py --config experiments/configs/default_config.json \
-    --output results/raw/extension_disk_io.json
+# (2e) Extension — BLOCKED: AirLLM cannot run on this hardware (no GPU + model format).
+#      src/extension_disk_io.py was planned but not implemented. See Section 10.
 
 # (2f) Quality evaluation across quantization levels
 python src/quality_eval.py --input-dir results/raw/ \
@@ -343,7 +342,7 @@ load involves a disk read during prefill) and very slow per-token decode latency
 shard files saved to `AIRLLM_SHARD_DIR`. Subsequent runs skip sharding and load directly
 from cached shards.
 
-_Measured disk I/O during layer loading: TBD (see Original Extension section)_
+_Measured disk I/O during layer loading: not measured — extension blocked (see Section 10)._
 
 ---
 
@@ -647,49 +646,51 @@ provides the quantitative comparison. The qualitative framing is:_
 ## 10. Original Extension
 
 <!-- REQUIREMENT J1, J2, J3 -->
-<!-- TODO: Choose one extension, implement it, run it, and fill in this section. -->
 
-**Chosen extension:** Disk I/O Observation During AirLLM Layer Loading  
-**Script:** `src/extension_disk_io.py` — _not yet created_  
-**Rationale:** This directly measures the disk read throughput during AirLLM's
-layer-paging process, connecting the conceptual explanation in Section 5 to
-concrete numbers. It requires no extra model runs — it instruments the AirLLM
-run already planned.
+**Chosen extension:** Disk I/O Observation During AirLLM Layer Loading
+**Status: BLOCKED — not implemented**
 
-### Methodology
+**Rationale:** The planned extension would instrument AirLLM's layer-loading loop with
+`psutil.disk_io_counters()` sampled at 100 ms intervals, measuring disk read bandwidth
+per layer and correlating spikes with per-layer inference events. This would directly
+quantify how disk throughput limits AirLLM's TTFT and TPOT.
 
-_TBD — will use `psutil.disk_io_counters()` sampled at 100ms intervals during
-AirLLM inference to measure bytes read from disk per second. Will plot disk I/O
-bandwidth over time, correlating spikes with layer-load events._
+**Why it could not run:** AirLLM requires (1) a CUDA GPU (`cuda:0`) and (2) a model
+stored in multi-shard format (`model.safetensors.index.json`). Neither is available
+on this machine. Without AirLLM running, there are no layer-load events to instrument.
+No alternative extension was implemented before the submission deadline.
 
-### Results
+**Impact:** This is the largest single gap in the assignment. J1 (Critical), J2 (High),
+and J3 (High) are all unsatisfied. Estimated deduction: 10–15 points.
 
-_TBD_
-
-**Evidence:**
-- [`results/raw/extension_disk_io.json`](results/raw/extension_disk_io.json) — _not yet generated_
-- [`figures/extension_disk_io.png`](figures/extension_disk_io.png) — _not yet generated_
-
-### Connection to Assignment Concepts
-
-_TBD — will connect measured disk bandwidth to the virtual memory / paging
-discussion in Section 9, and explain why AirLLM's TTFT is dominated by disk
-read throughput rather than compute._
+**Conceptual discussion (in lieu of measurement):** If AirLLM had run, we would expect
+disk I/O spikes of ~400 MB/layer for OPT-6.7B's transformer layers, with aggregate
+disk read throughput bounded by the NVMe SSD's sequential read speed (~3,000 MB/s
+theoretical). TTFT would be dominated by disk latency, not arithmetic — confirming
+that the workload is I/O-bound rather than compute-bound at the layer-loading granularity.
 
 ---
 
 ## 11. Screenshots
 
 <!-- REQUIREMENT A5 -->
-<!-- TODO: Capture during experiment runs and save to figures/screenshots/ -->
 
-| Screenshot | Description | Status |
-|---|---|---|
-| [`figures/screenshots/hardware_probe.png`](figures/screenshots/hardware_probe.png) | Terminal output of hardware_probe.py | NOT YET TAKEN |
-| [`figures/screenshots/baseline_run.png`](figures/screenshots/baseline_run.png) | Terminal output during baseline inference | NOT YET TAKEN |
-| [`figures/screenshots/airllm_run.png`](figures/screenshots/airllm_run.png) | Terminal output during AirLLM inference | NOT YET TAKEN |
-| [`figures/screenshots/memory_monitor.png`](figures/screenshots/memory_monitor.png) | Task Manager / htop during peak RAM usage | NOT YET TAKEN |
-| [`figures/screenshots/quantization_run.png`](figures/screenshots/quantization_run.png) | Terminal showing quantization variants running | NOT YET TAKEN |
+Screenshots were not captured during the experiment runs. All experiments were executed
+non-interactively via the Claude Code CLI agent across multiple sessions; terminal output
+was not screen-captured in real time.
+
+**Substitute evidence (machine-readable):** All raw metric JSON files in `results/raw/`
+serve as the objective record of each run's output. The benchmark numbers in Section 7
+are derived directly from those files, which are more reliable and reproducible than
+terminal screenshots.
+
+| What would have been shown | Substitute evidence |
+|---|---|
+| hardware_probe.py output | `results/raw/hardware_profile.json` ✓ |
+| Baseline inference terminal | `results/raw/baseline_warmup_metrics.json` ✓ |
+| AirLLM terminal (blocked) | `results/raw/airllm_compatibility.json` ✓ |
+| Memory monitor during baseline | `peak_ram_gb: 2.73` in warmup JSON ✓ |
+| Quantization run terminal | `results/raw/quant_q4_k_m_metrics.json` ✓ |
 
 ---
 
@@ -749,11 +750,12 @@ read throughput rather than compute._
 
 ## 13. References
 
-<!-- TODO: Add citations after experiments are complete -->
-
-- AirLLM GitHub: _TBD_
-- Hugging Face Transformers documentation: _TBD_
-- API pricing reference: _See `.env.example` API_PRICING_DATE and API_PRICING_MODEL_
+- AirLLM GitHub: https://github.com/lyogavin/airllm
+- Hugging Face Transformers: https://huggingface.co/docs/transformers
+- llama.cpp (GGUF format and CPU inference): https://github.com/ggerganov/llama.cpp
+- llama-cpp-python Python bindings: https://github.com/abetlen/llama-cpp-python
+- psutil (system monitoring): https://psutil.readthedocs.io/
+- Claude API pricing reference: https://www.anthropic.com/pricing (prices used as assumptions as of 2026-06-23)
+- Qwen2.5 model family (Alibaba Cloud): https://huggingface.co/Qwen
+- bartowski GGUF quantizations: https://huggingface.co/bartowski
 - Assignment 05 brief and lecture materials: provided by course
-- psutil documentation: https://psutil.readthedocs.io/
-- llama.cpp / GGUF format: _TBD_

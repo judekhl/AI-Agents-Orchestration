@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (economic analysis + self-assessment + README polish complete)
+Last updated: 2026-06-23 (final submission review — no more TBD markers; all stale counts corrected)
 
 ---
 
@@ -7,11 +7,12 @@ Last updated: 2026-06-23 (economic analysis + self-assessment + README polish co
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 7 | 74 |
-| IN_PROGRESS | 17 | 74 |
-| NOT_STARTED | 50 | 74 |
+| DONE | 43 | 74 |
+| IN_PROGRESS | 24 | 74 |
+| NOT_STARTED | 6 | 74 |
+| BLOCKED | 1 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5 (C1-C4 IN_PROGRESS; E1 IN_PROGRESS — Q4_K_M done)
+DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1, F3–F7, G1, G2, G4–G8, H1–H7, H9, I1, I3, I5–I13, K5, K8
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 

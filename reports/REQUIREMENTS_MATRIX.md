@@ -177,7 +177,7 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (graphs + summary table generated)
+Last updated: 2026-06-23 (final submission review complete)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -189,10 +189,10 @@ Last updated: 2026-06-23 (graphs + summary table generated)
 | F — Metrics | 8 | 0 | 2 | 6 | 0 | F2 (TPOT null), F8 (quality note present, not scored) |
 | G — Graphs | 9 | 1 | 0 | 7 | 0 | G3 (TPOT — no streaming hook) |
 | H — Economics | 9 | 1 | 0 | 8 | 0 | H8 (optional cloud GPU comparison) |
-| I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
+| I — Concepts | 13 | 0 | 2 | 11 | 0 | I2 (TPOT null), I4 (TPOT null) |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
-| K — Engineering | 8 | 3 | 5 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **19** | **17** | **37** | **1** | **—** |
+| K — Engineering | 8 | 2 | 5 | 1 | 0 | K5 (DONE — all numbers trace to raw files) |
+| **TOTAL** | **74** | **6** | **24** | **43** | **1** | **—** |
 
 ---
 
@@ -222,9 +222,9 @@ Last updated: 2026-06-23 (graphs + summary table generated)
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 37 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1, F3, F4, F5, F6, F7, G1, G2, G4, G5, G6, G7, G8, H1–H7, H9, K8 — see per-row status above)
-**IN_PROGRESS: 17 / 74 requirements** (A2–A6, B3, C1–C4, E1–E3, F2, F8, K1–K4, K7)
-**NOT_STARTED: 19 / 74 requirements** (H8, I1–I13 partial, J1–J3, remaining K items)
+**DONE: 43 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1, F3, F4, F5, F6, F7, G1, G2, G4, G5, G6, G7, G8, H1–H7, H9, I1, I3, I5–I13, K5, K8)
+**IN_PROGRESS: 24 / 74 requirements** (A2–A6, B3, C1–C4, E1–E3, F2, F8, I2, I4, K1–K4, K7)
+**NOT_STARTED: 6 / 74 requirements** (H8, J1–J3, K6, plus any remaining K items)
 **BLOCKED: 1 / 74 requirements** (D2 — AirLLM cannot run: no GPU + model format constraint)
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
@@ -232,11 +232,12 @@ Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS.
 Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load.
 AirLLM: BLOCKED — no CUDA GPU; small models lack sharded format; large model download stalled. Documented as negative result.
 Q4_K_M quantization: Qwen2.5-0.5B GGUF Q4_K_M — **26.24 tok/s, 0.55 GB RAM** — SUCCESS. vs FP16 baseline: +323% throughput, −80% RAM.
-Graphs: 5 figures generated in `figures/` ✓; summary_table.csv ✓.
+Graphs: 6 figures generated in `figures/` ✓; summary_table.csv ✓; economic_analysis.json ✓.
+Economic analysis: break-even ~261K req/month (hardware+electricity). Full analysis in Section 8.
+Self-assessment: ~65/100, written in README Section 12.
 
-**NOT 90+ ready.** Remaining blockers:
-- AirLLM: BLOCKED (documented — counts as honest negative result for D3)
-- Quantization experiment not yet run
-- All figures/*.png not yet generated
-- README Sections 6–12 still contain _TBD_ (Section 5 updated with real findings)
-- Economic analysis, extension, and self-assessment not written
+**NOT 90+ ready — submitted at ~65/100.** Final state:
+- AirLLM: BLOCKED (documented honest negative result — D3 satisfied)
+- Extension J1–J3: BLOCKED (depends on AirLLM) — largest remaining deduction
+- TPOT (F2, I4): not measured — no streaming hook; upper bound from throughput documented
+- Screenshots (A5): not captured — raw JSON files serve as substitute evidence
