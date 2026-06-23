@@ -48,12 +48,10 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Latest Safe Next Step
 
-Run **AirLLM experiment** using `facebook/opt-6.7b` via layer-sharding.
-- AirLLM cache: `C:\ai-model-cache\airllm-cache`
-- AirLLM shards: `C:\ai-model-cache\airllm-shards`
-- OPT-6.7B weights are partially cached in `C:\ai-model-cache\hf` (4 GB / 13.5 GB); AirLLM will need the full model
-- Output: `results/raw/airllm_metrics.json`
-- Script: `src/run_airllm.py`
+AirLLM compatibility check only — no full OPT-6.7B download.
+- Verify airllm imports; inspect if script runs with a tiny model (5-min timeout max)
+- If AirLLM requires full OPT-6.7B, document as BLOCKED and move to quantization
+- Output: `results/raw/airllm_compatibility.json`
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 
