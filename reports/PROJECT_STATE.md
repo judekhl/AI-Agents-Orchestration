@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (final submission review — no more TBD markers; all stale counts corrected)
+Last updated: 2026-06-23 (extension + streaming TPOT complete — ~80/100 estimated)
 
 ---
 
@@ -7,12 +7,12 @@ Last updated: 2026-06-23 (final submission review — no more TBD markers; all s
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 43 | 74 |
-| IN_PROGRESS | 24 | 74 |
-| NOT_STARTED | 6 | 74 |
+| DONE | 48 | 74 |
+| IN_PROGRESS | 22 | 74 |
+| NOT_STARTED | 3 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1, F3–F7, G1, G2, G4–G8, H1–H7, H9, I1, I3, I5–I13, K5, K8
+DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, F1–F7, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K5, K8
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -45,9 +45,10 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 - [x] Quantization experiment (Q4_K_M) — Qwen2.5-0.5B GGUF Q4_K_M ✓ — 26.24 tok/s, 0.55 GB RAM; `results/raw/quant_q4_k_m_metrics.json` ✓
 - [x] Benchmark summary table — `results/processed/summary_table.csv` ✓
 - [x] Graph generation — `figures/*.png` — 5 graphs generated ✓ (ttft, throughput, memory, runtime, quant_tradeoff)
+- [x] Streaming TPOT — `results/raw/quant_q4_k_m_streaming_metrics.json` ✓ — 31.0 ms/token, real per-token timestamps
 - [ ] Quality comparison — `results/processed/quality_scores.json`
 - [x] Economic analysis — `results/processed/economic_analysis.json` ✓ + breakeven graph ✓
-- [ ] Original extension — `results/raw/extension_disk_io.json` — BLOCKED (AirLLM cannot run)
+- [x] Original extension — `results/raw/extension_prompt_scaling.json` ✓ — prompt-length scaling with streaming TPOT; 5 prompts; graph `figures/extension_prompt_scaling.png` ✓
 - [x] Final README polish — all `_TBD_` replaced ✓
 - [x] Final self-assessment — README Section 12 ✓ (~65/100 estimated)
 

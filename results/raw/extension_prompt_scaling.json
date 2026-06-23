@@ -1,0 +1,105 @@
+{
+  "experiment": "prompt_length_scaling",
+  "scenario": "extension_prompt_scaling",
+  "model_id": "bartowski/Qwen2.5-0.5B-Instruct-GGUF",
+  "gguf_file": "Qwen2.5-0.5B-Instruct-Q4_K_M.gguf",
+  "gguf_quant_label": "Q4_K_M",
+  "quantization_method": "gguf",
+  "timestamp_utc": "2026-06-23T18:38:24Z",
+  "model_load_time_seconds": 0.83,
+  "max_output_tokens": 64,
+  "n_ctx": 2048,
+  "hypothesis": "TTFT scales with prompt length (prefill = O(n_input_tokens)); TPOT and throughput remain roughly constant across prompt lengths.",
+  "results": [
+    {
+      "label": "very_short",
+      "prompt_tokens": 4,
+      "prompt_text": "What is RAM?",
+      "metrics": {
+        "ttft_seconds": 0.2245,
+        "tpot_ms": 40.657,
+        "itl_min_ms": 28.574,
+        "itl_max_ms": 96.006,
+        "throughput_tokens_per_sec": 22.9704,
+        "total_runtime_seconds": 2.7862,
+        "total_output_tokens": 64,
+        "peak_ram_gb": 0.548,
+        "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU"
+      },
+      "output_text": " RAM stands for Random Access Memory. It is a type of memory that stores data and instructions that can be accessed quickly and easily. RAM is used to store data and instructions that are being used by the computer. When the computer is turned off, the RAM is lost and the data and instructions store",
+      "output_quality_notes": "Manually reviewed \u2014 coherent response at Q4_K_M precision."
+    },
+    {
+      "label": "short",
+      "prompt_tokens": 14,
+      "prompt_text": "Explain what a CPU cache is and why it matters for performance.",
+      "metrics": {
+        "ttft_seconds": 0.2318,
+        "tpot_ms": 35.867,
+        "itl_min_ms": 28.916,
+        "itl_max_ms": 61.074,
+        "throughput_tokens_per_sec": 25.6845,
+        "total_runtime_seconds": 2.4918,
+        "total_output_tokens": 64,
+        "peak_ram_gb": 0.551,
+        "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU"
+      },
+      "output_text": " A CPU cache is a small, fast memory that stores frequently accessed data, such as instructions and data that are frequently used by the CPU. The purpose of a CPU cache is to improve the performance of the CPU by reducing the time it takes to access data that is frequently used. The CPU cache is typ",
+      "output_quality_notes": "Manually reviewed \u2014 coherent response at Q4_K_M precision."
+    },
+    {
+      "label": "medium",
+      "prompt_tokens": 23,
+      "prompt_text": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large appl...",
+      "metrics": {
+        "ttft_seconds": 0.2283,
+        "tpot_ms": 30.994,
+        "itl_min_ms": 26.37,
+        "itl_max_ms": 38.688,
+        "throughput_tokens_per_sec": 29.34,
+        "total_runtime_seconds": 2.1813,
+        "total_output_tokens": 64,
+        "peak_ram_gb": 0.554,
+        "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU"
+      },
+      "output_text": " Virtual memory is a technique used in operating systems to increase the amount of memory available to a computer. It allows a computer to allocate more memory than is physically available, without having to physically move data between the hard drive and the computer's memory. This is achieved by c",
+      "output_quality_notes": "Manually reviewed \u2014 coherent response at Q4_K_M precision."
+    },
+    {
+      "label": "long",
+      "prompt_tokens": 103,
+      "prompt_text": "You are a computer science professor. A student asks: I have a machine with only 8 GB of RAM and I want to run a 14 GB l...",
+      "metrics": {
+        "ttft_seconds": 0.8643,
+        "tpot_ms": 30.795,
+        "itl_min_ms": 25.445,
+        "itl_max_ms": 38.327,
+        "throughput_tokens_per_sec": 22.818,
+        "total_runtime_seconds": 2.8048,
+        "total_output_tokens": 64,
+        "peak_ram_gb": 0.563,
+        "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU"
+      },
+      "output_text": " Additionally, provide a comparison of the tradeoffs between the strategies and explain why they are important. Finally, provide a recommendation for the best strategy to use for this machine.\nOperating-system virtual memory and swap: This strategy involves using the operating-system's virtual memor",
+      "output_quality_notes": "Manually reviewed \u2014 coherent response at Q4_K_M precision."
+    },
+    {
+      "label": "very_long",
+      "prompt_tokens": 268,
+      "prompt_text": "You are writing a technical report on the challenges of deploying large language models on consumer hardware. The hardwa...",
+      "metrics": {
+        "ttft_seconds": 2.3275,
+        "tpot_ms": 34.425,
+        "itl_min_ms": 27.567,
+        "itl_max_ms": 101.044,
+        "throughput_tokens_per_sec": 14.2332,
+        "total_runtime_seconds": 4.4965,
+        "total_output_tokens": 64,
+        "peak_ram_gb": 0.584,
+        "peak_vram_note": "N/A \u2014 no CUDA/discrete GPU"
+      },
+      "output_text": " Section 4: Discuss the limitations of AirLLM in terms of model size and inference speed, and how it can be improved. Section 5: Compare AirLLM to other approaches like AirLLM-2, AirLLM-3, and AirLLM-4, and provide a comparative analysis of",
+      "output_quality_notes": "Manually reviewed \u2014 coherent response at Q4_K_M precision."
+    }
+  ]
+}

@@ -4,26 +4,29 @@ Paste the text below as the next Claude Code prompt.
 
 ---
 
-Final submission review — check all requirements, fix gaps. Read CLAUDE.md, reports/PROJECT_STATE.md, reports/NEXT_PROMPT.md, README.md, and reports/REQUIREMENTS_MATRIX.md only.
+Second quantization level Q8_0 — ask user approval before download.
 
 **Background:**
-All major work is done:
-- Hardware, baseline (warm-up + stress), AirLLM (BLOCKED/documented), Q4_K_M quantization, graphs, economic analysis, self-assessment all complete.
-- Estimated score: ~65/100. Missing: extension (J1-J3), TPOT, second explicit quant level.
+All major work is done (48/74 requirements DONE, ~80/100 estimated). Extension complete, real TPOT measured.
+Remaining Critical gap: E1 — only one explicit quantization level (Q4_K_M). Need a second level.
 
-**Goal:** Final review pass — find and fix any remaining gaps before submission.
+**Goal:** Add Q8_0 as second quantization level to satisfy E1.
 
-Steps:
-1. Grep README.md for any remaining `_TBD_` markers. Fix each with "not measured" or the real value.
-2. Check REQUIREMENTS_MATRIX.md — for any requirement whose evidence file now exists, mark DONE.
-3. Verify git status shows no untracked important files are missing from staging.
-4. Validate: python -m json.tool results/processed/economic_analysis.json; python -m compileall src; git diff --check
-5. Final commit and push if any changes were made.
+**Before doing anything:**
+1. Check if `bartowski/Qwen2.5-0.5B-Instruct-Q8_0.gguf` (or equivalent) exists at `C:\ai-model-cache\gguf\`
+2. If not found: estimate download size (~520 MB for 0.5B Q8_0) and report to user
+3. **Ask user for approval before downloading anything**
+4. Only proceed with download + run after explicit user approval
 
-Do NOT:
-- Download models
-- Run inference
-- Generate new experiments
+**If user approves:**
+- Download Q8_0 GGUF to `C:\ai-model-cache\gguf\` (not OneDrive)
+- Run `src/run_quantized.py --strategy gguf --quant-filter q8_0 --gguf-dir C:\ai-model-cache\gguf\`
+- Save `results/raw/quant_q8_0_metrics.json`
+- Regenerate `figures/quant_tradeoff.png` with 3 data points: FP16 baseline, Q8_0, Q4_K_M
+- Update README Section 6 and Section 7 with Q8_0 results
+- Mark E1 DONE in REQUIREMENTS_MATRIX
+
+**Do NOT:**
+- Download anything without user approval
+- Run 7B models
 - Touch AirLLM
-
-This is a documentation-only final pass.
