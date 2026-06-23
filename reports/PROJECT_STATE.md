@@ -36,7 +36,8 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 - [x] Warm-up baseline inference — Qwen2.5-0.5B → `results/raw/baseline_warmup_metrics.json` ✓
 - [x] Stress baseline — OPT-6.7B → `results/raw/baseline_stress_failure.json` ✓ (TimeoutError: download stalled at 4/13.5 GB; OOM expected on load)
 - [BLOCKED] AirLLM experiment — BLOCKED: requires GPU (cuda:0) + sharded model format; `results/raw/airllm_compatibility.json` documents both blockers
-- [ ] Quantization experiment — Q4_K_M + Q8_0 → `results/raw/quant_*_metrics.json`
+- [BLOCKED] Q4_K_M 7B GGUF download — stalled after ~9 hours; no file written; `results/raw/quant_q4_download_failure.json` documents failure
+- [ ] Quantization experiment — needs smaller GGUF (0.5B–1.5B) or manual download of Q4_K_M outside Claude
 - [ ] Benchmark summary table — `results/processed/summary_table.csv`
 - [ ] Graph generation — `figures/*.png` (7 graphs)
 - [ ] Quality comparison — `results/processed/quality_scores.json`
@@ -49,11 +50,12 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Latest Safe Next Step
 
-Quantization experiment — llama.cpp + Qwen2.5-7B-Instruct-GGUF (Q4_K_M then Q8_0).
-- Download `bartowski/Qwen2.5-7B-Instruct-GGUF` Q4_K_M (~4.4 GB) to `C:\ai-model-cache\gguf\`
-- Run inference benchmark via llama-cpp-python; record tok/s, RAM, latency
-- Repeat with Q8_0 variant if time allows
-- Output: `results/raw/quant_q4km_metrics.json`, `results/raw/quant_q8_metrics.json`
+Quantization experiment — find a smaller GGUF model (0.5B–1.5B) for CPU-only 8 GB RAM:
+- Do NOT attempt Q4_K_M 7B download again inside Claude (stalled previously)
+- Find a Qwen2.5-0.5B or Qwen2.5-1.5B GGUF Q4_K_M (~0.4–0.9 GB) on HuggingFace
+- Ask user approval before downloading
+- Run llama-cpp-python benchmark; record tok/s, RAM, latency
+- Output: `results/raw/quant_q4km_metrics.json`
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 
