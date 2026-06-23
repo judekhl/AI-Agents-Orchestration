@@ -135,7 +135,7 @@
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
 | I1 | Prefill stage explained and connected to measured results | Concepts section | README section explicitly using the word "prefill" and tying it to TTFT measurement | `NOT_STARTED` | In "Analysis" section: explain prefill = processing input tokens; TTFT is dominated by prefill on long prompts | Conceptual analysis incomplete | High |
-| I2 | Decode stage explained and connected to measured results | Concepts section | README uses "decode" and ties it to TPOT/ITL measurement | `NOT_STARTED` | Explain decode = autoregressive generation; TPOT measures per-decode-step latency | Conceptual analysis incomplete | High |
+| I2 | Decode stage explained and connected to measured results | Concepts section | README uses "decode" and ties it to TPOT/ITL measurement | `DONE` | README Section 9 Decode ✓ — explains autoregressive generation, memory-bandwidth bottleneck, and connects to measured TPOT for both FP16 (387 ms/token) and Q4_K_M (31 ms/token). FP16 TPOT from `src/run_baseline_streaming.py` real per-token timing loop. Evidence: `results/raw/baseline_warmup_streaming_metrics.json` ✓ | Conceptual analysis incomplete | High |
 | I3 | TTFT defined and connected to measurement | Concepts section | README defines TTFT in context of experiment results | `NOT_STARTED` | Covered by F1 + I1 together | Conceptual clarity missing | High |
 | I4 | TPOT/ITL defined and connected to measurement | Concepts section | README defines TPOT/ITL in context of experiment results | `DONE` | README Section 9 TPOT/ITL subsection ✓ — defined with formula; connected to real measured value of 31.0 ms/token from streaming experiment; ITL range 21–60 ms documented. Evidence: `results/raw/quant_q4_k_m_streaming_metrics.json` ✓ | Conceptual clarity missing | High |
 | I5 | Throughput defined and connected to measurement | Concepts section | README discusses throughput in context of hardware and quantization | `NOT_STARTED` | Covered by F3 + analysis | Conceptual clarity missing | High |
@@ -177,7 +177,7 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (final grade-improvement sprint — 72/74 DONE, 88–93/100 estimated)
+Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 estimated)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -187,12 +187,12 @@ Last updated: 2026-06-23 (final grade-improvement sprint — 72/74 DONE, 88–93
 | D — AirLLM | 5 | 0 | 0 | 4 | 1 | D2 (BLOCKED — no GPU + model format mismatch) |
 | E — Quantization | 3 | 0 | 0 | 3 | 0 | All DONE |
 | F — Metrics | 8 | 0 | 0 | 8 | 0 | All DONE |
-| G — Graphs | 9 | 0 | 0 | 9 | 0 | All DONE — G9 roofline generated from measured data |
-| H — Economics | 9 | 0 | 0 | 9 | 0 | All DONE — H8 cloud GPU comparison added |
-| I — Concepts | 13 | 0 | 1 | 12 | 0 | I2 (TPOT: Q4 streaming done; FP16 baseline null) |
+| G — Graphs | 9 | 0 | 0 | 9 | 0 | All DONE |
+| H — Economics | 9 | 0 | 0 | 9 | 0 | All DONE |
+| I — Concepts | 13 | 0 | 0 | 13 | 0 | All DONE — I2: FP16 TPOT 387 ms/token measured |
 | J — Extension | 3 | 0 | 0 | 3 | 0 | All DONE |
-| K — Engineering | 8 | 0 | 0 | 8 | 0 | All DONE — K6 comprehensive error handling verified |
-| **TOTAL** | **74** | **0** | **1** | **72** | **1** | **—** |
+| K — Engineering | 8 | 0 | 0 | 8 | 0 | All DONE |
+| **TOTAL** | **74** | **0** | **0** | **73** | **1** | **—** |
 
 ---
 

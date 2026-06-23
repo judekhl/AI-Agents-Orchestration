@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (final grade-improvement sprint — 72/74 DONE, 88–93/100 estimated)
+Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 estimated)
 
 ---
 
@@ -7,15 +7,14 @@ Last updated: 2026-06-23 (final grade-improvement sprint — 72/74 DONE, 88–93
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 72 | 74 |
-| IN_PROGRESS | 1 | 74 |
+| DONE | 73 | 74 |
+| IN_PROGRESS | 0 | 74 |
 | NOT_STARTED | 0 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G9, H1–H9, I1, I3–I13, J1–J3, K1–K8
+DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G9, H1–H9, I1–I13, J1–J3, K1–K8
 
-IN_PROGRESS: I2 (TPOT: Q4 streaming done; FP16 baseline null — documented limitation)
-BLOCKED: D2 (AirLLM no GPU)
+BLOCKED: D2 (AirLLM no GPU — permanent, documented as honest negative result)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -46,8 +45,15 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Remaining Gaps (honest accounting)
 
-- **I2** — FP16 baseline TPOT is null (non-streaming inference; TTFT ≈ total runtime — documented limitation)
-- **D2** — AirLLM permanently BLOCKED (no CUDA GPU — honest negative result, fully documented)
+- **D2** — AirLLM permanently BLOCKED (no CUDA GPU — honest negative result, fully documented with `airllm_compatibility.json`)
+- All other requirements: DONE with real measured evidence
+
+## Final Milestone
+
+19. FP16 baseline streaming TPOT — `results/raw/baseline_warmup_streaming_metrics.json` ✓
+    - TTFT: 14.29s (prefill, manual decode loop), TPOT: 387 ms/token, ITL range: 101–7701 ms
+    - 12.5× slower decode than Q4_K_M (31 ms/token) — memory bandwidth bottleneck confirmed
+    - I2 closed: decode stage concept connected to both FP16 and Q4_K_M real measurements
 
 ---
 
