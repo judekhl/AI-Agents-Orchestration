@@ -33,11 +33,24 @@ Do not read or explore other files speculatively.
 
 ## Output Format
 
-Keep final responses under 40 lines unless more is requested. Format:
-1. What changed (bullet list)
-2. Validation results (one line each)
+Keep final responses under 25 lines unless more is requested. Format:
+1. Changed files (bullet list)
+2. Validation result (one line each)
 3. `git status`
-4. Next step (one sentence)
+4. Committed/pushed yes/no
+5. Next step (one sentence)
+
+---
+
+## Runtime and Token Budget Rules
+
+- **No polling.** Do not repeatedly check process status with shell commands while waiting. Run once, wait for completion, then summarize.
+- **No broad Explore.** Do not use the Explore agent unless the prompt explicitly says to.
+- **Ask before long tasks.** If a command, model download, or inference run is expected to take more than 5 minutes, ask the user before starting it.
+- **Silent waiting.** For long background commands, run once with a clear timeout and wait silently for the completion notification. Do not issue intermediate status checks.
+- **Read only named files.** For each task, read only the files explicitly listed in the prompt.
+- **No large tables unprompted.** Do not print wide tables or long diffs unless asked.
+- **Prefer small validation commands.** Use targeted checks (`json.tool`, `compileall`, `git diff --check`) not full repo scans.
 
 ---
 
@@ -105,9 +118,9 @@ Evidence: `results/raw/environment_setup.json`
 | `results/raw/model_selection.json` | ✓ |
 | Cache paths outside OneDrive | ✓ |
 | `results/raw/environment_setup.json` | ✓ |
-| Model weights downloaded | ✗ |
-| Warm-up baseline run | ✗ |
-| Stress baseline / OOM evidence | ✗ |
+| Model weights downloaded | Partial (Qwen 0.5B ✓, OPT-6.7B 4/13.5 GB) |
+| Warm-up baseline run | ✓ |
+| Stress baseline / OOM evidence | ✓ (TimeoutError — download stalled) |
 | AirLLM experiment | ✗ |
 | Quantization experiment | ✗ |
 | Graphs / summary table | ✗ |
@@ -115,7 +128,7 @@ Evidence: `results/raw/environment_setup.json`
 | Original extension | ✗ |
 | Final README polish | ✗ |
 
-Requirement counts: **DONE 6 / IN_PROGRESS 14 / NOT_STARTED 54** (total 74)
+Requirement counts: **DONE 6 / IN_PROGRESS 17 / NOT_STARTED 51** (total 74)
 
 ---
 

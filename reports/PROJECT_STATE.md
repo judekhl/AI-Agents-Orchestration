@@ -79,3 +79,11 @@ Exact prompt: see `reports/NEXT_PROMPT.md`
 - Before updating README numbers: confirm the raw JSON file exists with real data.
 - Before marking any requirement DONE: evidence file must exist and contain real data.
 - Do not upgrade `transformers` — pinned to 4.48.3 for airllm compatibility.
+
+## Runtime and Token Budget Rules
+
+- **No polling.** Run long commands once with a timeout; wait silently for completion. No repeated status checks.
+- **Ask before long tasks.** If a command or download will take > 5 min, ask first.
+- **No broad Explore.** Only read files named in the prompt.
+- **Output under 25 lines.** No large tables or long diffs unless asked.
+- **Prefer small validation.** Use `json.tool`, `compileall`, `git diff --check` — not full repo scans.
