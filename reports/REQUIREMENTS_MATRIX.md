@@ -1,7 +1,7 @@
 # REQUIREMENTS MATRIX — Assignment 05
 # Running a Massive LLM Locally: AirLLM, Quantization and Performance Benchmarking
 # Target grade: 90+
-# Last updated: 2026-06-23 (warm-up baseline complete)
+# Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED)
 # Rule: Status stays NOT_STARTED until evidence file exists in the repo. DONE requires real data.
 
 ---
@@ -65,11 +65,11 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| D1 | AirLLM integration attempted | AirLLM section | `scripts/airllm_run.py` exists | `IN_PROGRESS` | `src/run_airllm.py` exists using `airllm.AutoModel`, with configurable `AIRLLM_SHARD_DIR`/`AIRLLM_CACHE_DIR`, DiskIoSampler, and failure logging. Must be run to produce `results/raw/airllm_metrics.json`. | AirLLM section entirely missing | Critical |
-| D2 | AirLLM result measured if it runs | AirLLM section | `results/raw/airllm_metrics.json` with same metric fields as baseline | `NOT_STARTED` | Reuse metric instrumentation from C3; save to separate raw file | No comparison data for AirLLM | Critical |
-| D3 | If AirLLM fails, failure documented as negative result with logs and fallback | AirLLM section | `results/raw/airllm_failure.txt` with full error log + README section explaining what failed and why, + alternative approach taken | `NOT_STARTED` | Wrap AirLLM calls in try/except; save exception to file; document in README as "Negative Result — AirLLM" | Looks like work was skipped rather than failing honestly | High |
-| D4 | Layer-sharding / disk paging / I/O behavior discussed | AirLLM section | README section "AirLLM: How Layer Loading Works" explicitly referencing paging, virtual memory, disk I/O concepts from lecture | `NOT_STARTED` | Explain that AirLLM loads one layer at a time from disk, analogous to OS paging; connect to lecture vocabulary | Conceptual analysis missing | High |
-| D5 | AirLLM cache/shard path explicitly configured and documented | AirLLM section | In `scripts/airllm_run.py`, `cache_dir` / shard path is set to a configurable path (not hardcoded user path); documented in README | `NOT_STARTED` | Use `argparse` or environment variable for cache path; document in "How to Reproduce" | Grader cannot reproduce without knowing shard path; also exposes local path | Medium |
+| D1 | AirLLM integration attempted | AirLLM section | `scripts/airllm_run.py` exists | `DONE` | `src/run_airllm.py` exists using `airllm.AutoModel`, configurable shard path via JSON config. Compatibility run attempted 2026-06-23 — `airllm.AutoModel` imports OK, `AirLLMQWen2` auto-detected. Evidence: `results/raw/airllm_compatibility.json` ✓ | AirLLM section entirely missing | Critical |
+| D2 | AirLLM result measured if it runs | AirLLM section | `results/raw/airllm_metrics.json` with same metric fields as baseline | `BLOCKED` | AirLLM cannot run: (1) no CUDA GPU — device defaults to cuda:0; (2) tiny models use single safetensors (no index file); large OPT-6.7B needs full 13.5 GB download (stalled). Evidence: `results/raw/airllm_compatibility.json` ✓ | No comparison data for AirLLM | Critical |
+| D3 | If AirLLM fails, failure documented as negative result with logs and fallback | AirLLM section | `results/raw/airllm_failure.txt` with full error log + README section explaining what failed and why, + alternative approach taken | `DONE` | Failure documented in `results/raw/airllm_compatibility.json` ✓ and `results/processed/airllm_compatibility_summary.md` ✓. README Section 5 updated 2026-06-23: both blockers explained, actual error message included, quantization named as alternative. | Looks like work was skipped rather than failing honestly | High |
+| D4 | Layer-sharding / disk paging / I/O behavior discussed | AirLLM section | README section "AirLLM: How Layer Loading Works" explicitly referencing paging, virtual memory, disk I/O concepts from lecture | `DONE` | README Section 5 "How AirLLM Works" covers layer-by-layer disk loading, analogy to OS demand paging, RAM ceiling reduction, TTFT penalty from disk reads, and deliberate vs uncontrolled swap. Evidence: README.md Section 5 ✓ | Conceptual analysis missing | High |
+| D5 | AirLLM cache/shard path explicitly configured and documented | AirLLM section | In `scripts/airllm_run.py`, `cache_dir` / shard path is set to a configurable path (not hardcoded user path); documented in README | `DONE` | `src/run_airllm.py` reads `airllm_shard_dir` from `experiments/configs/default_config.json` (no hardcoded path). README Section 5 documents the path and override mechanism (`--config`). Evidence: `experiments/configs/default_config.json` + README.md Section 5 ✓ | Grader cannot reproduce without knowing shard path; also exposes local path | Medium |
 
 ---
 
@@ -177,14 +177,14 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (stress baseline complete — OPT-6.7B: TimeoutError after 1200s, download stalled at 4/13.5 GB)
+Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED; D1/D3/D4/D5 DONE)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
 | A — Repository | 7 | 0 | 5 | 2 | 0 | A3 (README real data partial — warm-up done), A6 (verify before final push) |
 | B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs stress OOM evidence) |
 | C — Baseline | 4 | 0 | 4 | 0 | 0 | C1 (warm-up done, stress pending), C2, C3 (partial) |
-| D — AirLLM | 5 | 4 | 1 | 0 | 0 | D1 (script ready, not run), D2 |
+| D — AirLLM | 5 | 0 | 0 | 4 | 1 | D2 (BLOCKED — no GPU + model format mismatch) |
 | E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script ready, not run) |
 | F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 (need all scenarios) |
 | G — Graphs | 9 | 9 | 0 | 0 | 0 | G1 |
@@ -192,7 +192,7 @@ Last updated: 2026-06-23 (stress baseline complete — OPT-6.7B: TimeoutError af
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
 | K — Engineering | 8 | 3 | 5 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **51** | **17** | **6** | **0** | **—** |
+| **TOTAL** | **74** | **47** | **16** | **10** | **1** | **—** |
 
 ---
 
@@ -222,18 +222,19 @@ Last updated: 2026-06-23 (stress baseline complete — OPT-6.7B: TimeoutError af
 
 ## CURRENT STATUS: NOT 90+ READY
 
-**DONE: 6 / 74 requirements** (A1, A7, B1, B2, B4, B5)
-**IN_PROGRESS: 17 / 74 requirements** (C1–C4 all in progress; K7 — 8 incremental commits now)
-**NOT_STARTED: 51 / 74 requirements**
+**DONE: 10 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5)
+**IN_PROGRESS: 16 / 74 requirements** (C1–C4 all in progress; K7)
+**NOT_STARTED: 47 / 74 requirements**
+**BLOCKED: 1 / 74 requirements** (D2 — AirLLM cannot run: no GPU + model format constraint)
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
 Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS.
 Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load.
-Critical finding confirmed: naive 7B baseline infeasible — motivates AirLLM + GGUF Q4.
+AirLLM: BLOCKED — no CUDA GPU; small models lack sharded format; large model download stalled. Documented as negative result.
 
 **NOT 90+ ready.** Remaining blockers:
-- AirLLM experiment not yet run
+- AirLLM: BLOCKED (documented — counts as honest negative result for D3)
 - Quantization experiment not yet run
 - All figures/*.png not yet generated
-- README Sections 5–13 still contain _TBD_
+- README Sections 6–12 still contain _TBD_ (Section 5 updated with real findings)
 - Economic analysis, extension, and self-assessment not written

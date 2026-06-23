@@ -5,9 +5,10 @@
 **Course:** [Course name]  
 **Repo:** https://github.com/judekhl/AI-Agents-Orchestration
 
-> **Status: IN PROGRESS — warm-up baseline complete; stress baseline, AirLLM, quantization, graphs, and analysis pending.**
+> **Status: IN PROGRESS — warm-up baseline complete; stress baseline complete (timeout/OOM); AirLLM BLOCKED (Section 5); quantization, graphs, and analysis pending.**
 > Warm-up numbers in Section 4 and Section 7 are real measured values from `results/raw/baseline_warmup_metrics.json`.
-> All other _TBD_ entries are not yet run. Do not read them as results.
+> AirLLM result in Section 5 reflects a real compatibility check — two hard blockers documented (no CUDA GPU; model format mismatch). Not skipped.
+> All remaining _TBD_ entries are not yet run. Do not read them as results.
 
 ---
 
@@ -289,17 +290,37 @@ python src/plot_results.py --input-dir results/raw/ \
 ## 5. AirLLM Experiment
 
 <!-- REQUIREMENT D1, D2, D3, D4, D5 -->
-<!-- TODO: After running src/run_airllm.py, fill in this section. -->
 
 **Script:** [`src/run_airllm.py`](src/run_airllm.py)  
-**Shard directory:** Configured via `AIRLLM_SHARD_DIR` in `.env` (default: `./airllm_shards/`)  
-**Cache directory:** Configured via `AIRLLM_CACHE_DIR` in `.env` (default: `./airllm_cache/`)  
-**Outcome:** _TBD — Success / Failure (if failure, see airllm_failure.txt)_
+**Shard path:** `C:\ai-model-cache\airllm-shards` — configured via `airllm_shard_dir` in `experiments/configs/default_config.json` (not hardcoded; override with `--config`)
 
-### Raw Evidence
+**Outcome:** **BLOCKED** — two hard constraints prevent AirLLM from running on this machine. This is a documented negative result, not skipped work.
 
-- Success case: [`results/raw/airllm_metrics.json`](results/raw/airllm_metrics.json) — _not yet generated_
-- Failure case: [`results/raw/airllm_failure.txt`](results/raw/airllm_failure.txt) — _not yet generated_
+### Evidence (real data)
+
+- Compatibility check: [`results/raw/airllm_compatibility.json`](results/raw/airllm_compatibility.json) ✓
+- Human-readable summary: [`results/processed/airllm_compatibility_summary.md`](results/processed/airllm_compatibility_summary.md) ✓
+
+### What Was Attempted
+
+The AirLLM package was installed and its API was fully inspected. A compatibility run was attempted with `Qwen/Qwen2.5-0.5B-Instruct` (the only fully-cached local model) using the correct AirLLM parameters: `device='cpu'`, `dtype=torch.float32`, `layer_shards_saving_path`.
+
+**Import check — PASS:** `airllm.AutoModel` imports correctly. `AirLLMQWen2` is auto-selected for the Qwen2 architecture.
+
+### Why AirLLM Is Blocked
+
+**Blocker 1 — Model format:** AirLLM's sharding logic asserts that `model.safetensors.index.json` must exist — the index file produced when HuggingFace stores a model as multiple shard files. This format only appears in large models (typically 7B+).
+
+- `Qwen/Qwen2.5-0.5B-Instruct` (cached locally): stored as a single `model.safetensors` → no index file → `AssertionError: model.safetensors.index.json should exist.`
+- `facebook/opt-6.7b` (correct format): would have the multi-shard index, but requires a full 13.5 GB download. The previous attempt stalled at 4 GB / 13.5 GB after 1200 s (Section 4) — resuming is impractical within this assignment's constraints.
+
+**Blocker 2 — No CUDA GPU:** AirLLM defaults to `device='cuda:0'`. This machine has no discrete CUDA GPU (Intel i5-1135G7 integrated graphics only, no CUDA support). CPU-mode is not officially supported by AirLLM, and FP16 on CPU raises errors.
+
+**Also found — bug in `src/run_airllm.py`:** The script passes `cache_dir=` to `AirLLMAutoModel.from_pretrained()`, which AirLLM does not accept. The correct parameter is `layer_shards_saving_path`. This would cause an immediate `TypeError` before the model format check.
+
+### This Is a Valid Negative Result
+
+Documenting what blocked AirLLM is the honest outcome. The blockers are real hardware and format constraints — not shortcuts. AirLLM's layer-paging design is described conceptually below. The quantization experiment (Section 6) provides the runnable alternative: GGUF Q4 quantization achieves a similar goal (running a 7B-class model in 8.22 GB RAM) through weight compression rather than layer-by-layer disk paging.
 
 ### How AirLLM Works
 
