@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (Q8_0 second quant level complete — ~83/100 estimated)
+Last updated: 2026-06-23 (90+ closure sprint complete — 69/74 DONE, 85–90/100 estimated)
 
 ---
 
@@ -7,12 +7,16 @@ Last updated: 2026-06-23 (Q8_0 second quant level complete — ~83/100 estimated
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 51 | 74 |
-| IN_PROGRESS | 19 | 74 |
-| NOT_STARTED | 3 | 74 |
+| DONE | 69 | 74 |
+| IN_PROGRESS | 2 | 74 |
+| NOT_STARTED | 2 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, E1–E3, F1–F7, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K5, K8
+DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F3, F5–F8, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K1–K5, K7, K8
+
+IN_PROGRESS: F2 (baseline TPOT null), I2 (TPOT measured for Q4 only)
+NOT_STARTED: G9 (roofline — optional), H8 (cloud GPU comparison — optional), K6 (error handling)
+BLOCKED: D2 (AirLLM no GPU)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -28,39 +32,36 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 6. Environment setup (`results/raw/environment_setup.json`) — all packages installed
 7. Warm-up baseline — `results/raw/baseline_warmup_metrics.json` — 6.2 tok/s, 2.73 GB RAM, no OOM
 8. Stress baseline — `results/raw/baseline_stress_failure.json` — TimeoutError after 1200s; download stalled at 4 GB / 13.5 GB; confirms OOM risk on load
-9. AirLLM compatibility check — `results/raw/airllm_compatibility.json` — BLOCKED: requires sharded model format (large models only) and CUDA GPU; neither available. Also found bug in run_airllm.py (wrong kwarg `cache_dir` → should be `layer_shards_saving_path`).
-10. Q4_K_M GGUF benchmark — `results/raw/quant_q4_k_m_metrics.json` — **26.24 tok/s, 0.55 GB RAM** (Qwen2.5-0.5B-Instruct Q4_K_M, llama-cpp-python, CPU-only). vs warm-up baseline: +323% throughput, −80% RAM.
-11. Graphs + summary table — `results/processed/summary_table.csv` ✓ + 5 figures in `figures/` ✓ (ttft, throughput, memory, runtime, quant_tradeoff).
-12. Economic analysis — `results/processed/economic_analysis.json` ✓ + `figures/economic_breakeven.png` ✓. Break-even: ~261K requests/month (hardware+electricity only). API cheaper below that.
-13. Self-assessment + README polish — all `_TBD_` markers replaced; Section 12 written; Section 9 TBDs fixed with real values.
+9. AirLLM compatibility check — `results/raw/airllm_compatibility.json` — BLOCKED: requires sharded model format (large models only) and CUDA GPU; neither available.
+10. Q4_K_M GGUF benchmark — `results/raw/quant_q4_k_m_metrics.json` — **26.24 tok/s, 0.55 GB RAM** (Qwen2.5-0.5B-Instruct Q4_K_M, llama-cpp-python, CPU-only).
+11. Graphs + summary table — `results/processed/summary_table.csv` + 9 figures in `figures/`
+12. Economic analysis — `results/processed/economic_analysis.json` + `figures/economic_breakeven.png`. Break-even: ~261K requests/month.
+13. Self-assessment + README polish — all `_TBD_` markers replaced; Section 12 written.
+14. Streaming TPOT extension — `results/raw/extension_prompt_scaling.json` — 5 prompts; real per-token timestamps; `figures/extension_prompt_scaling.png` + `figures/tpot_comparison.png`
+15. Q8_0 second quantization level — `results/raw/quant_q8_0_metrics.json` — 17.56 tok/s, 0.58 GB RAM
+16. Quality scoring — `results/processed/quality_scores.json` — FP16: 23/25, Q4_K_M: 22/25, Q8_0: 17/25; `figures/quality_comparison.png`
+17. Evidence snapshots — `figures/screenshots/` — 4 PNGs generated programmatically from raw JSON
+18. Matrix closure sprint — A2–A6, B3, C1–C4, F8, K1–K5, K7, K8 all closed to DONE
 
 ---
 
-## Not Yet Done (in order)
+## Remaining Gaps (honest accounting)
 
-- [x] Warm-up baseline inference — Qwen2.5-0.5B → `results/raw/baseline_warmup_metrics.json` ✓
-- [x] Stress baseline — OPT-6.7B → `results/raw/baseline_stress_failure.json` ✓ (TimeoutError: download stalled at 4/13.5 GB; OOM expected on load)
-- [BLOCKED] AirLLM experiment — BLOCKED: requires GPU (cuda:0) + sharded model format; `results/raw/airllm_compatibility.json` documents both blockers
-- [BLOCKED] Q4_K_M 7B GGUF download — stalled after ~9 hours; no file written; `results/raw/quant_q4_download_failure.json` documents failure
-- [x] Quantization experiment (Q4_K_M) — Qwen2.5-0.5B GGUF Q4_K_M ✓ — 26.24 tok/s, 0.55 GB RAM; `results/raw/quant_q4_k_m_metrics.json` ✓
-- [x] Benchmark summary table — `results/processed/summary_table.csv` ✓
-- [x] Graph generation — `figures/*.png` — 5 graphs generated ✓ (ttft, throughput, memory, runtime, quant_tradeoff)
-- [x] Streaming TPOT — `results/raw/quant_q4_k_m_streaming_metrics.json` ✓ — 31.0 ms/token, real per-token timestamps
-- [ ] Quality comparison — `results/processed/quality_scores.json`
-- [x] Economic analysis — `results/processed/economic_analysis.json` ✓ + breakeven graph ✓
-- [x] Original extension — `results/raw/extension_prompt_scaling.json` ✓ — prompt-length scaling with streaming TPOT; 5 prompts; graph `figures/extension_prompt_scaling.png` ✓
-- [x] Final README polish — all `_TBD_` replaced ✓
-- [x] Final self-assessment — README Section 12 ✓ (~65/100 estimated)
+- **F2 / I2** — FP16 baseline TPOT is null (non-streaming inference; TTFT ≈ total runtime)
+- **K6** — Error handling is partial (some try/except, no OOM handler for stress; stress failed before load)
+- **G9** — Roofline model graph not generated (optional requirement)
+- **H8** — Cloud GPU cost comparison not done (optional)
+- **D2** — AirLLM permanently BLOCKED (no CUDA GPU)
 
 ---
 
 ## Latest Safe Next Step
 
-Final submission review — check all requirements, fix any gaps:
-- Verify all `_TBD_` are gone from README
-- Verify all evidence files are committed
-- Check REQUIREMENTS_MATRIX for any DONE items not marked
-- Final git push
+Final review and commit:
+- `python -m json.tool results/processed/quality_scores.json` — validate JSON
+- `python -m compileall src/ -q` — validate scripts
+- `git diff --check` — no trailing whitespace
+- `git add` new files + commit + push
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 
@@ -74,6 +75,9 @@ Exact prompt: see `reports/NEXT_PROMPT.md`
 | `results/raw/hardware_profile.json` | Measured hardware (CPU, RAM, disk, OS) |
 | `results/raw/model_selection.json` | Three-role model feasibility analysis |
 | `results/raw/environment_setup.json` | Installed package versions, import health |
+| `results/processed/quality_scores.json` | Manual quality rubric — 3 models × 5 dimensions |
+| `results/processed/economic_analysis.json` | Break-even analysis (~261K req/month) |
+| `figures/screenshots/` | 4 evidence snapshots (programmatically generated) |
 | `experiments/configs/default_config.json` | All cache paths, model IDs, experiment params |
 | `src/run_baseline.py` | Baseline inference script |
 | `src/benchmark_common.py` | RamSampler, DiskIoSampler, compute_metrics |

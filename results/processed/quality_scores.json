@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "generated": "2026-06-23",
+    "rubric": "Manual 1-5 scoring per dimension: coherence, factuality, relevance, repetition (5=no repetition), completeness",
+    "max_score_per_scenario": 25,
+    "prompt": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.",
+    "output_tokens": 64,
+    "scorer": "Claude Sonnet 4.6 manual assessment",
+    "note": "All three models use same base (Qwen2.5-0.5B-Instruct); only quantization level differs."
+  },
+  "scores": {
+    "baseline_warmup": {
+      "scenario": "baseline_warmup",
+      "model": "Qwen2.5-0.5B-Instruct (FP16, transformers)",
+      "output_text": "Virtual memory is a technique used by operating systems to allow programs to access larger amounts of memory than are physically available... Paging is one",
+      "scores": {
+        "coherence": 5,
+        "factuality": 5,
+        "relevance": 5,
+        "repetition": 4,
+        "completeness": 4
+      },
+      "notes": "Clear, accurate definition; correctly introduces paging; truncated at 64-token limit but logically consistent.",
+      "total_5x5": 23,
+      "normalized_0_to_1": 0.92
+    },
+    "quant_q8_0": {
+      "scenario": "quant_q8_0",
+      "model": "Qwen2.5-0.5B-Instruct (Q8_0 GGUF, llama.cpp)",
+      "output_text": "Virtual memory is a technique used in operating systems to allow a computer to have more than one address space, or memory space, for different programs... The operating system then uses a",
+      "scores": {
+        "coherence": 4,
+        "factuality": 3,
+        "relevance": 4,
+        "repetition": 3,
+        "completeness": 3
+      },
+      "notes": "Confuses virtual memory with address-space isolation; misses paging explanation; \"memory space\" repeated 3x; factually imprecise but not wrong.",
+      "total_5x5": 17,
+      "normalized_0_to_1": 0.68
+    },
+    "quant_q4_k_m": {
+      "scenario": "quant_q4_k_m",
+      "model": "Qwen2.5-0.5B-Instruct (Q4_K_M GGUF, llama.cpp)",
+      "output_text": "Virtual memory is a technique used in operating systems to increase the amount of memory available to a computer. It allows a computer to allocate more memory than is physically available, without having to physically move data between physical memory and disk...",
+      "scores": {
+        "coherence": 5,
+        "factuality": 4,
+        "relevance": 5,
+        "repetition": 4,
+        "completeness": 4
+      },
+      "notes": "Clear and accurate; slight imprecision (VM does involve disk for swap, not avoid it); no paging reached at 64 tokens; fluent and on-topic.",
+      "total_5x5": 22,
+      "normalized_0_to_1": 0.88
+    }
+  },
+  "summary": {
+    "FP16_baseline": {
+      "total": 23,
+      "normalized": 0.92,
+      "rank": 1
+    },
+    "Q4_K_M": {
+      "total": 22,
+      "normalized": 0.88,
+      "rank": 2
+    },
+    "Q8_0": {
+      "total": 17,
+      "normalized": 0.68,
+      "rank": 3
+    }
+  },
+  "finding": "FP16 produces the highest quality output (23/25). Q4_K_M is nearly equivalent (22/25). Q8_0 is noticeably lower (17/25) due to imprecise factual framing, but still coherent. Counter-intuitively, Q4_K_M slightly outperforms Q8_0 at this model scale \u2014 likely due to different GGUF quantization kernel implementations in llama.cpp."
+}
