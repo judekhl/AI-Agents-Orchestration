@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (graphs + summary table generated)
+Last updated: 2026-06-23 (economic analysis + self-assessment + README polish complete)
 
 ---
 
@@ -30,6 +30,8 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 9. AirLLM compatibility check — `results/raw/airllm_compatibility.json` — BLOCKED: requires sharded model format (large models only) and CUDA GPU; neither available. Also found bug in run_airllm.py (wrong kwarg `cache_dir` → should be `layer_shards_saving_path`).
 10. Q4_K_M GGUF benchmark — `results/raw/quant_q4_k_m_metrics.json` — **26.24 tok/s, 0.55 GB RAM** (Qwen2.5-0.5B-Instruct Q4_K_M, llama-cpp-python, CPU-only). vs warm-up baseline: +323% throughput, −80% RAM.
 11. Graphs + summary table — `results/processed/summary_table.csv` ✓ + 5 figures in `figures/` ✓ (ttft, throughput, memory, runtime, quant_tradeoff).
+12. Economic analysis — `results/processed/economic_analysis.json` ✓ + `figures/economic_breakeven.png` ✓. Break-even: ~261K requests/month (hardware+electricity only). API cheaper below that.
+13. Self-assessment + README polish — all `_TBD_` markers replaced; Section 12 written; Section 9 TBDs fixed with real values.
 
 ---
 
@@ -43,20 +45,20 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 - [x] Benchmark summary table — `results/processed/summary_table.csv` ✓
 - [x] Graph generation — `figures/*.png` — 5 graphs generated ✓ (ttft, throughput, memory, runtime, quant_tradeoff)
 - [ ] Quality comparison — `results/processed/quality_scores.json`
-- [ ] Economic analysis — `results/processed/economic_analysis.json`
-- [ ] Original extension — `results/raw/extension_disk_io.json`
-- [ ] Final README polish — fill all `_TBD_` placeholders with real numbers
-- [ ] Final self-assessment — `README.md` Section 13
+- [x] Economic analysis — `results/processed/economic_analysis.json` ✓ + breakeven graph ✓
+- [ ] Original extension — `results/raw/extension_disk_io.json` — BLOCKED (AirLLM cannot run)
+- [x] Final README polish — all `_TBD_` replaced ✓
+- [x] Final self-assessment — README Section 12 ✓ (~65/100 estimated)
 
 ---
 
 ## Latest Safe Next Step
 
-Economic analysis + self-assessment + final README polish:
-- Write `results/processed/economic_analysis.json` with API cost, on-prem cost, break-even
-- Generate `figures/economic_breakeven.png`
-- Fill README Sections 8, 12 with real data
-- Final self-assessment
+Final submission review — check all requirements, fix any gaps:
+- Verify all `_TBD_` are gone from README
+- Verify all evidence files are committed
+- Check REQUIREMENTS_MATRIX for any DONE items not marked
+- Final git push
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 

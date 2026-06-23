@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "generated": "2026-06-23",
+    "pricing_note": "Claude Haiku 3 prices used as assumption ($0.25/$1.25 per 1M input/output tokens). Verify current prices at anthropic.com/pricing before citing.",
+    "pricing_source": "Anthropic published pricing — last known from training data; labeled as assumption",
+    "hardware_source": "results/raw/hardware_profile.json — i5-1135G7, 28W TDP",
+    "token_count_source": "results/raw/quant_q4_k_m_metrics.json — total_output_tokens=64; prompt ~27 tokens"
+  },
+  "api_pricing": {
+    "model": "claude-haiku-3 (assumption — cheapest Anthropic model, illustrative)",
+    "input_price_per_1m_tokens_usd": 0.25,
+    "output_price_per_1m_tokens_usd": 1.25,
+    "date_of_assumption": "2026-06-23"
+  },
+  "benchmark_request": {
+    "input_tokens_approx": 27,
+    "output_tokens": 64,
+    "total_tokens": 91
+  },
+  "api_cost_per_request_usd": 0.00008675,
+  "api_cost_per_1000_requests_usd": 0.0868,
+  "api_cost_calculation": "(27 * 0.25 + 64 * 1.25) / 1000000 = 86.75 / 1000000",
+  "on_prem": {
+    "hardware_cost_usd": 800,
+    "hardware_life_years": 3,
+    "hardware_amortization_per_month_usd": 22.22,
+    "cpu_tdp_watts": 28,
+    "inference_hours_per_month_assumption": 120,
+    "electricity_rate_usd_per_kwh": 0.12,
+    "electricity_kwh_per_month": 3.36,
+    "electricity_cost_per_month_usd": 0.40,
+    "electricity_calculation": "28W * 120h / 1000 * $0.12/kWh = $0.40",
+    "operator_hours_per_month": 2,
+    "operator_rate_usd_per_hour": 15,
+    "operator_cost_per_month_usd": 30.0,
+    "total_fixed_monthly_usd_hardware_electricity": 22.62,
+    "total_fixed_monthly_usd_with_operator": 52.62,
+    "note": "Break-even graph uses hardware+electricity only ($22.62). Operator cost adds $30/month if applicable."
+  },
+  "breakeven_requests_per_month": 260753,
+  "breakeven_formula": "fixed_monthly_on_prem_cost / api_cost_per_request = 22.62 / 0.00008675",
+  "breakeven_with_operator": 606228,
+  "monthly_cost_curve": [
+    {"requests_per_month": 0,      "api_cost_usd": 0.00,  "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 50000,  "api_cost_usd": 4.34,  "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 100000, "api_cost_usd": 8.68,  "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 150000, "api_cost_usd": 13.01, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 200000, "api_cost_usd": 17.35, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 260753, "api_cost_usd": 22.62, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 300000, "api_cost_usd": 26.03, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 500000, "api_cost_usd": 43.38, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 750000, "api_cost_usd": 65.06, "on_prem_cost_usd": 22.62},
+    {"requests_per_month": 1000000,"api_cost_usd": 86.75, "on_prem_cost_usd": 22.62}
+  ]
+}
