@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (90+ closure sprint complete — 69/74 DONE, 85–90/100 estimated)
+Last updated: 2026-06-23 (final readiness review — 69/74 DONE, 85–90/100 estimated)
 
 ---
 
@@ -12,10 +12,10 @@ Last updated: 2026-06-23 (90+ closure sprint complete — 69/74 DONE, 85–90/10
 | NOT_STARTED | 2 | 74 |
 | BLOCKED | 1 | 74 |
 
-DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F3, F5–F8, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K1–K5, K7, K8
+DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G8, H1–H7, H9, I1, I3–I13, J1–J3, K1–K5, K7, K8
 
-IN_PROGRESS: F2 (baseline TPOT null), I2 (TPOT measured for Q4 only)
-NOT_STARTED: G9 (roofline — optional), H8 (cloud GPU comparison — optional), K6 (error handling)
+IN_PROGRESS: I2 (TPOT: Q4 streaming done; FP16 baseline null), K6 (try/except present in all scripts; OOM handler partial)
+NOT_STARTED: G9 (roofline — optional), H8 (cloud GPU comparison — optional)
 BLOCKED: D2 (AirLLM no GPU)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`

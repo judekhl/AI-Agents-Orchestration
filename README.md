@@ -341,7 +341,7 @@ load involves a disk read during prefill) and very slow per-token decode latency
 shard files saved to `AIRLLM_SHARD_DIR`. Subsequent runs skip sharding and load directly
 from cached shards.
 
-_Measured disk I/O during layer loading: not measured — extension blocked (see Section 10)._
+_Disk I/O during layer loading: not directly measurable — AirLLM is blocked on this hardware. See Section 10 for the completed alternative extension (prompt-length scaling)._
 
 ---
 
