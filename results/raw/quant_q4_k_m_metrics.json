@@ -1,0 +1,24 @@
+{
+  "scenario": "quant_q4_k_m",
+  "model_id": "bartowski/Qwen2.5-0.5B-Instruct-GGUF",
+  "gguf_file": "Qwen2.5-0.5B-Instruct-Q4_K_M.gguf",
+  "timestamp_utc": "2026-06-23T13:59:40Z",
+  "metrics": {
+    "ttft_seconds": 2.4392,
+    "tpot_ms": null,
+    "throughput_tokens_per_sec": 26.2384,
+    "total_runtime_seconds": 2.4392,
+    "total_output_tokens": 64,
+    "peak_ram_gb": 0.55,
+    "peak_vram_gb": null,
+    "peak_vram_note": "N/A — no CUDA/discrete GPU",
+    "quantization_method": "gguf",
+    "gguf_quant_label": "Q4_K_M",
+    "model_load_time_seconds": 0.59
+  },
+  "extra": {
+    "prompt": "Explain the concept of virtual memory in operating systems, including how paging works and why it matters for large applications.",
+    "output_text": " Virtual memory is a technique used in operating systems to increase the amount of memory available to a computer. It allows a computer to allocate more memory than is physically available, without having to physically move data between physical memory and disk. This is achieved by creating a virtual memory space that is larger than the physical memory, and then",
+    "output_quality_notes": "TODO: manual assessment"
+  }
+}

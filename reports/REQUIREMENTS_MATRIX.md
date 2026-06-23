@@ -77,9 +77,9 @@
 
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
-| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `IN_PROGRESS` | `src/run_quantized.py` has 3 transformers configs (FP32, FP16, BF16) + 2 GGUF configs (Q8_0, Q4_K_M). Must run to produce JSON files. | Quantization section missing entirely | Critical |
-| E2 | Impact on memory, speed, and output quality measured or documented for each level | Quantization section | Each `results/raw/quant_*_metrics.json` contains RAM peak, TTFT, throughput, and a short output quality note | `NOT_STARTED` | Run same prompt across all quant levels; compare outputs qualitatively; log metrics consistently | Cannot draw quantization tradeoff graph | High |
-| E3 | Quantization "red line" for quality discussed | Quantization section | README section "Quantization Quality Threshold" discussing at what level output degrades noticeably, with example outputs | `NOT_STARTED` | After E2, compare outputs; note any coherence loss at lower precision; reference bit-width tradeoffs from lecture | Conceptual insight missing | Medium |
+| E1 | At least two quantization levels / settings attempted where technically possible | Quantization section | `scripts/quantization_run.py` with at least two configs; `results/raw/quant_fp16_metrics.json` AND `results/raw/quant_q4_metrics.json` (or equivalent) | `IN_PROGRESS` | Q4_K_M GGUF: `results/raw/quant_q4_k_m_metrics.json` ✓ — 26.24 tok/s, 0.55 GB RAM. FP16 (warm-up baseline) provides the second level implicitly (same model, same prompt, different precision). Second explicit quant run (Q8 or FP16 via transformers) still pending. | Quantization section missing entirely | Critical |
+| E2 | Impact on memory, speed, and output quality measured or documented for each level | Quantization section | Each `results/raw/quant_*_metrics.json` contains RAM peak, TTFT, throughput, and a short output quality note | `IN_PROGRESS` | Q4_K_M: `results/raw/quant_q4_k_m_metrics.json` ✓ — 26.24 tok/s, 0.55 GB, 64 tokens, coherent output. FP16 baseline (warm-up): 6.20 tok/s, 2.73 GB. Direct comparison documented in README Section 6 (+323% throughput, −80% RAM at Q4 vs FP16). | Cannot draw quantization tradeoff graph | High |
+| E3 | Quantization "red line" for quality discussed | Quantization section | README section "Quantization Quality Threshold" discussing at what level output degrades noticeably, with example outputs | `IN_PROGRESS` | README Section 6 "Quantization Quality Threshold" states that Q4_K_M preserves coherence for 0.5B; notes Q2_K as expected degradation point. Example output provided. Full comparison across more levels pending. | Conceptual insight missing | Medium |
 
 ---
 
@@ -177,7 +177,7 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED; D1/D3/D4/D5 DONE)
+Last updated: 2026-06-23 (Q4_K_M GGUF benchmark complete — 26.24 tok/s, 0.55 GB RAM)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
@@ -185,14 +185,14 @@ Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED; D1/D3
 | B — Hardware | 5 | 0 | 1 | 4 | 0 | B3 (in progress — needs stress OOM evidence) |
 | C — Baseline | 4 | 0 | 4 | 0 | 0 | C1 (warm-up done, stress pending), C2, C3 (partial) |
 | D — AirLLM | 5 | 0 | 0 | 4 | 1 | D2 (BLOCKED — no GPU + model format mismatch) |
-| E — Quantization | 3 | 2 | 1 | 0 | 0 | E1 (script ready, not run) |
+| E — Quantization | 3 | 0 | 3 | 0 | 0 | E1 (Q4_K_M done; second level pending) |
 | F — Metrics | 8 | 8 | 0 | 0 | 0 | F1, F2, F3, F5 (need all scenarios) |
 | G — Graphs | 9 | 9 | 0 | 0 | 0 | G1 |
 | H — Economics | 9 | 9 | 0 | 0 | 0 | — |
 | I — Concepts | 13 | 13 | 0 | 0 | 0 | I13 |
 | J — Extension | 3 | 3 | 0 | 0 | 0 | J1 |
 | K — Engineering | 8 | 3 | 5 | 0 | 0 | K5 |
-| **TOTAL** | **74** | **47** | **16** | **10** | **1** | **—** |
+| **TOTAL** | **74** | **45** | **18** | **10** | **1** | **—** |
 
 ---
 
@@ -223,14 +223,15 @@ Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED; D1/D3
 ## CURRENT STATUS: NOT 90+ READY
 
 **DONE: 10 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5)
-**IN_PROGRESS: 16 / 74 requirements** (C1–C4 all in progress; K7)
-**NOT_STARTED: 47 / 74 requirements**
+**IN_PROGRESS: 18 / 74 requirements** (C1–C4; E1–E3; K7)
+**NOT_STARTED: 45 / 74 requirements**
 **BLOCKED: 1 / 74 requirements** (D2 — AirLLM cannot run: no GPU + model format constraint)
 
 Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
 Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS.
 Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load.
 AirLLM: BLOCKED — no CUDA GPU; small models lack sharded format; large model download stalled. Documented as negative result.
+Q4_K_M quantization: Qwen2.5-0.5B GGUF Q4_K_M — **26.24 tok/s, 0.55 GB RAM** — SUCCESS. vs FP16 baseline: +323% throughput, −80% RAM.
 
 **NOT 90+ ready.** Remaining blockers:
 - AirLLM: BLOCKED (documented — counts as honest negative result for D3)

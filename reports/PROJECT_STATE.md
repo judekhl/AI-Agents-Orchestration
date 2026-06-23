@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-23 (AirLLM compat check complete — BLOCKED)
+Last updated: 2026-06-23 (Q4_K_M GGUF benchmark complete — 26.24 tok/s, 0.55 GB RAM)
 
 ---
 
@@ -11,7 +11,7 @@ Last updated: 2026-06-23 (AirLLM compat check complete — BLOCKED)
 | IN_PROGRESS | 17 | 74 |
 | NOT_STARTED | 50 | 74 |
 
-DONE items: A1, A7, B1, B2, B4, B5 (C1-C4 IN_PROGRESS — warm-up + stress both done)
+DONE items: A1, A7, B1, B2, B4, B5, D1, D3, D4, D5 (C1-C4 IN_PROGRESS; E1 IN_PROGRESS — Q4_K_M done)
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -28,6 +28,7 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 7. Warm-up baseline — `results/raw/baseline_warmup_metrics.json` — 6.2 tok/s, 2.73 GB RAM, no OOM
 8. Stress baseline — `results/raw/baseline_stress_failure.json` — TimeoutError after 1200s; download stalled at 4 GB / 13.5 GB; confirms OOM risk on load
 9. AirLLM compatibility check — `results/raw/airllm_compatibility.json` — BLOCKED: requires sharded model format (large models only) and CUDA GPU; neither available. Also found bug in run_airllm.py (wrong kwarg `cache_dir` → should be `layer_shards_saving_path`).
+10. Q4_K_M GGUF benchmark — `results/raw/quant_q4_k_m_metrics.json` — **26.24 tok/s, 0.55 GB RAM** (Qwen2.5-0.5B-Instruct Q4_K_M, llama-cpp-python, CPU-only). vs warm-up baseline: +323% throughput, −80% RAM.
 
 ---
 
@@ -37,7 +38,7 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 - [x] Stress baseline — OPT-6.7B → `results/raw/baseline_stress_failure.json` ✓ (TimeoutError: download stalled at 4/13.5 GB; OOM expected on load)
 - [BLOCKED] AirLLM experiment — BLOCKED: requires GPU (cuda:0) + sharded model format; `results/raw/airllm_compatibility.json` documents both blockers
 - [BLOCKED] Q4_K_M 7B GGUF download — stalled after ~9 hours; no file written; `results/raw/quant_q4_download_failure.json` documents failure
-- [ ] Quantization experiment — needs smaller GGUF (0.5B–1.5B) or manual download of Q4_K_M outside Claude
+- [x] Quantization experiment (Q4_K_M) — Qwen2.5-0.5B GGUF Q4_K_M ✓ — 26.24 tok/s, 0.55 GB RAM; `results/raw/quant_q4_k_m_metrics.json` ✓
 - [ ] Benchmark summary table — `results/processed/summary_table.csv`
 - [ ] Graph generation — `figures/*.png` (7 graphs)
 - [ ] Quality comparison — `results/processed/quality_scores.json`
@@ -50,12 +51,10 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Latest Safe Next Step
 
-Quantization experiment — find a smaller GGUF model (0.5B–1.5B) for CPU-only 8 GB RAM:
-- Do NOT attempt Q4_K_M 7B download again inside Claude (stalled previously)
-- Find a Qwen2.5-0.5B or Qwen2.5-1.5B GGUF Q4_K_M (~0.4–0.9 GB) on HuggingFace
-- Ask user approval before downloading
-- Run llama-cpp-python benchmark; record tok/s, RAM, latency
-- Output: `results/raw/quant_q4km_metrics.json`
+Generate benchmark summary table + graphs from existing raw results:
+- Inputs: `results/raw/baseline_warmup_metrics.json`, `results/raw/quant_q4_k_m_metrics.json`, `results/raw/baseline_stress_failure.json`
+- Run `src/plot_results.py` to generate `results/processed/summary_table.csv` and `figures/*.png`
+- Update README Section 7 summary table and embed graph images
 
 Exact prompt: see `reports/NEXT_PROMPT.md`
 

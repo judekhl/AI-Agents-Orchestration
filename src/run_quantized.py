@@ -190,6 +190,11 @@ def main():
         default="./models/gguf/",
         help="Directory containing pre-downloaded GGUF files",
     )
+    parser.add_argument(
+        "--quant-filter",
+        default=None,
+        help="Comma-separated quant IDs to run (e.g. q4_k_m). If omitted, runs all.",
+    )
     args = parser.parse_args()
 
     cfg = load_env_config()
@@ -225,7 +230,9 @@ def main():
 
     if args.strategy in ("gguf", "both"):
         gguf_dir = Path(args.gguf_dir)
-        for qcfg in GGUF_QUANT_CONFIGS:
+        quant_ids = [q.strip() for q in args.quant_filter.split(",")] if args.quant_filter else None
+        active_gguf_configs = [q for q in GGUF_QUANT_CONFIGS if quant_ids is None or q["id"] in quant_ids]
+        for qcfg in active_gguf_configs:
             # Look for a matching GGUF file by quant label
             pattern = f"*{qcfg['quant_label']}*"
             matches = list(gguf_dir.glob(pattern)) if gguf_dir.exists() else []
