@@ -5,9 +5,9 @@
 **Course:** AI Agents Orchestration
 **Repo:** https://github.com/judekhl/AI-Agents-Orchestration
 
-> **Status: SUBSTANTIALLY COMPLETE — extension done; real TPOT measured via streaming.**
+> **Status: COMPLETE — all experiments run with real measured data, including AirLLM on a GPU.**
 > Warm-up baseline, stress baseline, Q4_K_M quantization, streaming TPOT, prompt-length scaling extension, graphs, economic analysis, and self-assessment all real measured data.
-> AirLLM is BLOCKED (no CUDA GPU + model format constraint) — documented as an honest negative result (Section 5).
+> AirLLM now **runs successfully** — a 7B model layer-streamed through an 8 GB GPU at **1.16 GB peak VRAM** (Section 5). Baseline and quantization were measured on the primary no-GPU laptop; the AirLLM experiment was completed on a second machine with an NVIDIA RTX 4060 Laptop GPU.
 > All numbers in this README trace to files in `results/raw/` or `results/processed/`.
 
 ---
@@ -50,6 +50,8 @@
 | Python version | 3.10.0 |
 
 **Critical constraint:** 8.22 GB total RAM with no GPU. A 7B model in FP16 requires ~14 GB RAM — naive baseline load will OOM. AirLLM layer-paging and GGUF Q4 quantization are the primary mitigations.
+
+**Second machine (AirLLM experiment only):** the AirLLM run in Section 5 was executed on a separate machine with an **NVIDIA GeForce RTX 4060 Laptop GPU (8 GB VRAM, CUDA 12.4)**, Python 3.12, `torch 2.5.1+cu124`. The baseline (Section 4) and quantization (Section 6) results were all measured on the primary i5-1135G7 laptop above; only AirLLM required CUDA. Evidence: [`results/raw/airllm_gpu_metrics.json`](results/raw/airllm_gpu_metrics.json).
 
 **Evidence file:** [`results/raw/hardware_profile.json`](results/raw/hardware_profile.json) ✓  
 **Summary:** [`results/processed/hardware_summary.md`](results/processed/hardware_summary.md) ✓
@@ -199,16 +201,20 @@ python src/hardware_probe.py --output results/raw/hardware_profile.json
 python src/run_baseline.py --config experiments/configs/default_config.json \
     --output results/raw/baseline_metrics.json
 
-# (2c) AirLLM — layer-by-layer sharding from disk
-python src/run_airllm.py --config experiments/configs/default_config.json \
-    --output results/raw/airllm_metrics.json
+# (2c) AirLLM — layer-by-layer sharding from disk (requires a CUDA GPU)
+#      Needs transformers==4.45.2 (newer drops the per-layer RoPE fallback AirLLM relies on).
+#      Model + token limit + shard dir come from env vars (kept outside OneDrive):
+MODEL_ID="Qwen/Qwen2.5-7B-Instruct" MAX_NEW_TOKENS=32 \
+AIRLLM_SHARD_DIR="C:\ai-model-cache\airllm-shards" \
+AIRLLM_CACHE_DIR="C:\ai-model-cache\airllm-cache" HF_HOME="C:\ai-model-cache\hf" \
+python src/run_airllm.py --output results/raw/airllm_gpu_metrics.json
 
 # (2d) Quantization variants — GGUF Q4_K_M and Q8_0
 python src/run_quantized.py --config experiments/configs/default_config.json \
     --output-dir results/raw/
 
-# (2e) Extension — BLOCKED: AirLLM cannot run on this hardware (no GPU + model format).
-#      src/extension_disk_io.py was planned but not implemented. See Section 10.
+# (2e) Extension — prompt-length scaling (runnable on CPU). See Section 10.
+python src/extension_prompt_scaling.py --output results/raw/extension_prompt_scaling.json
 
 # (2f) Quality evaluation across quantization levels
 python src/quality_eval.py --input-dir results/raw/ \
@@ -224,7 +230,7 @@ python src/plot_results.py --input-dir results/raw/ \
     --output-dir figures/
 ```
 
-**Expected total runtime:** ~15 min for runnable experiments (warm-up baseline ~3.5 min including first download; Q4_K_M GGUF ~7 min including download + 3 s inference). Stress baseline and AirLLM are blocked on this hardware (see Sections 4 and 5).
+**Expected total runtime:** ~15 min for the CPU experiments (warm-up baseline ~3.5 min including first download; Q4_K_M GGUF ~7 min including download + 3 s inference). The AirLLM run (separate GPU machine) takes ~24 min one-time to download+shard the 7B model, then ~14 min for 32-token generation; subsequent runs reuse cached shards (load ≈ 3.7 s). The stress baseline is the documented OOM/timeout negative result (Section 4).
 
 ---
 
@@ -293,33 +299,48 @@ python src/plot_results.py --input-dir results/raw/ \
 **Script:** [`src/run_airllm.py`](src/run_airllm.py)  
 **Shard path:** `C:\ai-model-cache\airllm-shards` — configured via `airllm_shard_dir` in `experiments/configs/default_config.json` (not hardcoded; override with `--config`)
 
-**Outcome:** **BLOCKED** — two hard constraints prevent AirLLM from running on this machine. This is a documented negative result, not skipped work.
+**Outcome:** **SUCCESS (on a CUDA GPU).** AirLLM streamed a 7-billion-parameter model through an 8 GB GPU by loading one layer at a time. On the original development laptop (Intel i5-1135G7, no CUDA GPU) this requirement was **BLOCKED**; it was completed after moving to a machine with an **NVIDIA GeForce RTX 4060 Laptop GPU**. The earlier negative-result history is preserved below for honesty.
 
 ### Evidence (real data)
 
-- Compatibility check: [`results/raw/airllm_compatibility.json`](results/raw/airllm_compatibility.json) ✓
-- Human-readable summary: [`results/processed/airllm_compatibility_summary.md`](results/processed/airllm_compatibility_summary.md) ✓
+- GPU run metrics: [`results/raw/airllm_gpu_metrics.json`](results/raw/airllm_gpu_metrics.json) ✓
+- Earlier compatibility check (CPU-only laptop): [`results/raw/airllm_compatibility.json`](results/raw/airllm_compatibility.json) ✓
 
-### What Was Attempted
+### Result (measured)
 
-The AirLLM package was installed and its API was fully inspected. A compatibility run was attempted with `Qwen/Qwen2.5-0.5B-Instruct` (the only fully-cached local model) using the correct AirLLM parameters: `device='cpu'`, `dtype=torch.float32`, `layer_shards_saving_path`.
+Model `Qwen/Qwen2.5-7B-Instruct`, layer-streamed inference, `max_new_tokens=32`, deterministic (greedy) decode, on an NVIDIA GeForce RTX 4060 Laptop GPU (CUDA 12.4):
 
-**Import check — PASS:** `airllm.AutoModel` imports correctly. `AirLLMQWen2` is auto-selected for the Qwen2 architecture.
+| Metric | Value |
+|---|---|
+| **Peak VRAM** | **1.16 GB** (a 7B model on an 8 GB GPU) |
+| Peak RAM | 5.87 GB |
+| Total runtime | 819 s for 32 tokens |
+| Throughput | 0.039 tok/s (≈ 25.6 s/token) |
+| Model load (from cached per-layer shards) | 3.7 s |
+| Disk read during streaming | peak 2.90 GB/s, avg 636 MB/s (7589 samples) |
+| Input / output tokens | 11 / 32 |
 
-### Why AirLLM Is Blocked
+Output (coherent): _"Virtual memory is a memory management technique used by operating systems to allow a computer to compensate for shortages of physical memory (RAM) by temporarily transferring pages of data from..."_
 
-**Blocker 1 — Model format:** AirLLM's sharding logic asserts that `model.safetensors.index.json` must exist — the index file produced when HuggingFace stores a model as multiple shard files. This format only appears in large models (typically 7B+).
+**Headline result:** peak VRAM of only **1.16 GB** to run a 7B model — far below the ~15 GB its FP16 weights would otherwise need — at the cost of very low throughput (≈ 25.6 s/token). This is precisely the memory-for-latency tradeoff AirLLM is built to make, and it mirrors OS demand paging (see "How AirLLM Works" below).
 
-- `Qwen/Qwen2.5-0.5B-Instruct` (cached locally): stored as a single `model.safetensors` → no index file → `AssertionError: model.safetensors.index.json should exist.`
-- `facebook/opt-6.7b` (correct format): would have the multi-shard index, but requires a full 13.5 GB download. The previous attempt stalled at 4 GB / 13.5 GB after 1200 s (Section 4) — resuming is impractical within this assignment's constraints.
+### What Was Done
 
-**Blocker 2 — No CUDA GPU:** AirLLM defaults to `device='cuda:0'`. This machine has no discrete CUDA GPU (Intel i5-1135G7 integrated graphics only, no CUDA support). CPU-mode is not officially supported by AirLLM, and FP16 on CPU raises errors.
+1. Selected `Qwen/Qwen2.5-7B-Instruct` — a multi-shard safetensors model with a `model.safetensors.index.json`, in the same family as the warm-up (0.5B) and quantization (7B GGUF) models, and natively supported by AirLLM's `AirLLMQWen2` class.
+2. AirLLM downloaded the checkpoint and split it into 31 per-layer safetensors shards under `C:\ai-model-cache\airllm-shards` (one-time, ≈ 24 min). Subsequent runs load from cache in ≈ 3.7 s.
+3. Ran layer-streamed generation on the GPU; recorded peak VRAM (`torch.cuda.max_memory_allocated`), peak RAM, disk I/O, runtime, and output text.
 
-**Also found — bug in `src/run_airllm.py`:** The script passes `cache_dir=` to `AirLLMAutoModel.from_pretrained()`, which AirLLM does not accept. The correct parameter is `layer_shards_saving_path`. This would cause an immediate `TypeError` before the model format check.
+### Engineering Fixes Required (real bugs found and fixed)
 
-### This Is a Valid Negative Result
+Making AirLLM actually run surfaced three concrete issues, all fixed in `src/run_airllm.py` / the environment:
 
-Documenting what blocked AirLLM is the honest outcome. The blockers are real hardware and format constraints — not shortcuts. AirLLM's layer-paging design is described conceptually below. The quantization experiment (Section 6) provides the runnable alternative: GGUF Q4 quantization achieves a similar goal (running a 7B-class model in 8.22 GB RAM) through weight compression rather than layer-by-layer disk paging.
+1. **Wrong shard-path argument** — the script passed `cache_dir=` to `AirLLMAutoModel.from_pretrained()`, which AirLLM does not accept (it is a `transformers` argument). Corrected to `layer_shards_saving_path=`.
+2. **Wrong token argument** — the constructor parameter is `hf_token`, not `token`; passing `token=` raised `TypeError`. Now passes `hf_token` only when a token is set (public models need none).
+3. **transformers / AirLLM version mismatch** — transformers ≥ 4.46 removed the per-layer RoPE fallback, so AirLLM 2.11.0's layer-by-layer forward (which passes `position_ids` but not `position_embeddings`) crashed with `cannot unpack non-iterable NoneType`. Pinning `transformers==4.45.2` restores the fallback. A device fix (`input_ids.to(model.device)`) was also required so the GPU generation loop does not mix CPU and CUDA tensors.
+
+### Why the 0.5B Model Could Not Use AirLLM
+
+For the record: `Qwen/Qwen2.5-0.5B-Instruct` is stored as a single `model.safetensors` with no index file, so AirLLM's splitter (which keys on `pytorch_model.bin.index.json` or `model.safetensors.index.json`) cannot shard it. AirLLM is designed for large, multi-shard checkpoints — which is exactly why the 7B model is the correct target. The GGUF Q4 quantization path (Section 6) remains the complementary approach: it reaches a similar goal (running a 7B-class model in limited memory) through weight compression rather than layer-by-layer disk paging.
 
 ### How AirLLM Works
 
@@ -341,7 +362,7 @@ load involves a disk read during prefill) and very slow per-token decode latency
 shard files saved to `AIRLLM_SHARD_DIR`. Subsequent runs skip sharding and load directly
 from cached shards.
 
-_Disk I/O during layer loading: not directly measurable — AirLLM is blocked on this hardware. See Section 10 for the completed alternative extension (prompt-length scaling)._
+**Disk I/O during layer loading (measured):** the GPU run recorded **peak 2.90 GB/s, average 636 MB/s across 7,589 samples** ([`results/raw/airllm_gpu_metrics.json`](results/raw/airllm_gpu_metrics.json)) — direct, quantitative evidence of the per-layer disk paging described above. The high disk-read rate alongside the very low 0.039 tok/s throughput confirms that AirLLM is I/O-bound: nearly all wall-clock time is spent moving layer weights from disk, not computing on the GPU.
 
 ---
 
@@ -436,16 +457,17 @@ At both Q8_0 and Q4_K_M precision for a 0.5B model, output coherence is preserve
 | Baseline warm-up FP16 (batch) | 10.33 ¹ | N/A ¹ | 6.20 | 2.73 | N/A | 10.33 |
 | **Baseline warm-up FP16 (streaming ⁴)** | **14.29 ⁴** | **387 ⁴** | 1.66 ⁴ | 1.99 ⁴ | N/A | 38.67 ⁴ |
 | Baseline stress (OPT-6.7B) | N/A (timeout) | N/A | 0 (timeout) | N/A | N/A | 1200 (timeout) |
-| AirLLM | BLOCKED ² | BLOCKED ² | BLOCKED ² | BLOCKED ² | N/A | BLOCKED ² |
+| **AirLLM (Qwen2.5-7B, GPU ⁵)** | 819 ⁵ | N/A ⁵ | **0.039 ⁵** | 5.87 ⁵ | **1.16 ⁵** | 819 ⁵ |
 | Quant Q8_0 (GGUF) | 3.65 ¹ | N/A ¹ | 17.56 | 0.58 | N/A | 3.65 |
 | **Quant Q4_K_M (GGUF, streaming ³)** | **0.228 ³** | **31.0 ³** | 29.34 ³ | **0.55** | N/A | 2.24 ³ |
 
 ¹ TTFT approximated as total runtime (no streaming hook). TPOT undefined.
-² AirLLM BLOCKED: no CUDA GPU + model format mismatch. Evidence: `results/raw/airllm_compatibility.json`.
+² AirLLM (GPU): superseded — now runs successfully on an RTX 4060 (see ⁵). The earlier CPU-only-laptop block is kept in `results/raw/airllm_compatibility.json` for history.
 ³ Q4_K_M streaming: `llama-cpp-python stream=True` real per-token timestamps. Evidence: [`results/raw/quant_q4_k_m_streaming_metrics.json`](results/raw/quant_q4_k_m_streaming_metrics.json) ✓
 ⁴ FP16 streaming: manual greedy decode loop, real prefill TTFT and ITL. TPOT mean=387 ms (ITL range 101–7701 ms; high variability from CPU warmup/cache cold-start). Evidence: [`results/raw/baseline_warmup_streaming_metrics.json`](results/raw/baseline_warmup_streaming_metrics.json) ✓
+⁵ AirLLM: Qwen2.5-7B layer-streamed on an RTX 4060 Laptop GPU (CUDA 12.4), `max_new_tokens=32`, greedy. TTFT≈runtime by design (every decode step reloads all layers, so TPOT is reported N/A; effective ≈25.6 s/token = 1/throughput). Peak VRAM 1.16 GB is the headline. Evidence: [`results/raw/airllm_gpu_metrics.json`](results/raw/airllm_gpu_metrics.json) ✓
 
-**Key comparison:** Q4_K_M TPOT (31 ms) vs FP16 TPOT (387 ms) = **12.5× faster decode** per token at Q4_K_M. Both measured with real streaming timestamps.
+**Key comparison:** Q4_K_M TPOT (31 ms) vs FP16 TPOT (387 ms) = **12.5× faster decode** per token at Q4_K_M. Both measured with real streaming timestamps. AirLLM trades the opposite way: it cuts peak VRAM to **1.16 GB** for a 7B model but pays ≈25.6 s/token — memory-bound vs compute throughput, the core tradeoff of the assignment.
 
 **Evidence:** [`results/processed/summary_table.csv`](results/processed/summary_table.csv) ✓, [`results/raw/baseline_warmup_streaming_metrics.json`](results/raw/baseline_warmup_streaming_metrics.json) ✓
 
@@ -801,9 +823,9 @@ ensuring the data displayed matches the actual raw outputs exactly.
 
 <!-- REQUIREMENT K8 -->
 
-**Estimated score: 90–95 / 100**
-**Grading status: COMPLETE — 73/74 requirements DONE; only D2 AirLLM BLOCKED (no CUDA GPU, documented as honest negative result).**
-**Conservative estimate: 90. Upper range 93–95 if all optional items (G9 roofline, H8 cloud GPU, evidence snapshots) are fully credited.**
+**Estimated score: 93–97 / 100**
+**Grading status: COMPLETE — 74/74 requirements DONE. D2 (AirLLM measured) is now satisfied with a real GPU run; no requirements remain blocked.**
+**Conservative estimate: 93. Upper range 95–97 with all optional items (G9 roofline, H8 cloud GPU, evidence snapshots) credited.**
 
 ### What Is Done (with evidence)
 
@@ -813,7 +835,7 @@ ensuring the data displayed matches the actual raw outputs exactly.
 | Model selection justified | `results/raw/model_selection.json` ✓ |
 | Warm-up baseline run (SUCCESS) | `results/raw/baseline_warmup_metrics.json` — 6.20 tok/s, 2.73 GB ✓ |
 | Stress baseline (documented OOM) | `results/raw/baseline_stress_failure.json` — timeout after 1200 s ✓ |
-| AirLLM blocked (documented negative result) | `results/raw/airllm_compatibility.json` — two hard blockers ✓ |
+| **AirLLM run (SUCCESS, GPU)** | `results/raw/airllm_gpu_metrics.json` — Qwen2.5-7B, 1.16 GB peak VRAM, 0.039 tok/s on RTX 4060 ✓ |
 | Q8_0 quantization benchmark | `results/raw/quant_q8_0_metrics.json` — 17.56 tok/s, 0.58 GB ✓ |
 | Q4_K_M quantization benchmark | `results/raw/quant_q4_k_m_metrics.json` — 26.24 tok/s, 0.55 GB ✓ |
 | Real TPOT via streaming (Q4_K_M) | `results/raw/quant_q4_k_m_streaming_metrics.json` — 31.0 ms/token ✓ |
@@ -833,7 +855,8 @@ ensuring the data displayed matches the actual raw outputs exactly.
 
 | Gap | Reason |
 |---|---|
-| AirLLM metrics (D2) | Blocked by hardware (no CUDA GPU) and model format constraint. Documented honest negative result in `results/raw/airllm_compatibility.json`. |
+| AirLLM on the *primary* laptop | The i5-1135G7 laptop has no CUDA GPU, so AirLLM could not run there (documented in `results/raw/airllm_compatibility.json`). Resolved by running the AirLLM experiment on a second machine with an RTX 4060 — see `results/raw/airllm_gpu_metrics.json`. |
+| AirLLM TPOT (per-token) | Reported N/A: AirLLM reloads all layers every decode step, so TTFT≈runtime; effective per-token time is ≈25.6 s (1/throughput), captured via throughput rather than a streaming TPOT hook. |
 | Screenshots | Not taken — programmatically-generated evidence snapshots in `figures/screenshots/` serve as substitute. |
 
 ### Score Justification
@@ -841,7 +864,7 @@ ensuring the data displayed matches the actual raw outputs exactly.
 - **Section A (repository):** ~93% — public repo, gitignore, complete README, evidence snapshots; course name filled.
 - **Section B (hardware/model):** ~92% — all profiled; stress OOM documented; B3 satisfied by timeout evidence.
 - **Section C (baseline):** ~93% — both scenarios with real evidence; bottleneck analysis complete; FP16 TPOT now measured (387 ms/token, streaming).
-- **Section D (AirLLM):** ~75% — BLOCKED but fully documented; D1/D3/D4/D5 satisfied; D2 is the only blocked item (no CUDA GPU — unavoidable on this hardware).
+- **Section D (AirLLM):** ~95% — D1–D5 all satisfied. D2 now has a real measured GPU run (Qwen2.5-7B, 1.16 GB peak VRAM, 7589 disk-I/O samples proving layer paging); layer-loading mechanism explained and quantified.
 - **Section E (quantization):** ~92% — FP16 + Q8_0 + Q4_K_M; three-level comparison; quality scoring; red-line discussion.
 - **Section F (metrics):** ~95% — TTFT/TPOT/throughput/RAM/VRAM/quality all done for all runnable scenarios; FP16 TPOT 387 ms measured via streaming.
 - **Section G (graphs):** ~97% — 10 graphs (TTFT, throughput, memory, runtime, quant tradeoff, economic, TPOT, extension, quality, roofline); all G1–G9 complete.
@@ -850,7 +873,7 @@ ensuring the data displayed matches the actual raw outputs exactly.
 - **Section J (extension):** ~92% — prompt-length scaling complete; 3-panel graph; results table; conceptual connections to prefill/decode.
 - **Section K (engineering):** ~92% — clean scripts; argparse; raw/processed separation; 21+ incremental commits; K6 comprehensive error handling verified.
 
-**Honest estimate: 90–95 / 100.** Conservative floor: 90. Upper range 93–95 if roofline, cloud GPU comparison, and evidence snapshots are fully credited. AirLLM being blocked (D2) is the only unavoidable deduction.
+**Honest estimate: 93–97 / 100.** Conservative floor: 93. Upper range 95–97 if roofline, cloud GPU comparison, and evidence snapshots are fully credited. With the AirLLM GPU run completed, all 74 requirements are satisfied with real measured evidence and no remaining blockers.
 
 ---
 
