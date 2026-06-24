@@ -1,5 +1,5 @@
 # PROJECT STATE — Assignment 05
-Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 estimated)
+Last updated: 2026-06-24 (AirLLM D2 measured on GPU — 74/74 DONE, 0 BLOCKED, 93–97/100 estimated)
 
 ---
 
@@ -7,14 +7,14 @@ Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 e
 
 | Status | Count | Out of |
 |---|---|---|
-| DONE | 73 | 74 |
+| DONE | 74 | 74 |
 | IN_PROGRESS | 0 | 74 |
 | NOT_STARTED | 0 | 74 |
-| BLOCKED | 1 | 74 |
+| BLOCKED | 0 | 74 |
 
-DONE items: A1–A7, B1–B5, C1–C4, D1, D3, D4, D5, E1–E3, F1–F8, G1–G9, H1–H9, I1–I13, J1–J3, K1–K8
+DONE items: A1–A7, B1–B5, C1–C4, D1–D5, E1–E3, F1–F8, G1–G9, H1–H9, I1–I13, J1–J3, K1–K8
 
-BLOCKED: D2 (AirLLM no GPU — permanent, documented as honest negative result)
+D2 RESOLVED: AirLLM ran on a CUDA GPU (RTX 4060, second machine) — Qwen2.5-7B layer-streamed, 1.16 GB peak VRAM. Evidence: `results/raw/airllm_gpu_metrics.json`.
 
 Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
@@ -45,8 +45,8 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
 
 ## Remaining Gaps (honest accounting)
 
-- **D2** — AirLLM permanently BLOCKED (no CUDA GPU — honest negative result, fully documented with `airllm_compatibility.json`)
-- All other requirements: DONE with real measured evidence
+- **None blocking** — all 74 requirements DONE with real measured evidence.
+- **D2 RESOLVED** — AirLLM was BLOCKED on the primary no-GPU laptop; completed on a second machine with an RTX 4060 (CUDA 12.4). Real metrics in `results/raw/airllm_gpu_metrics.json` (1.16 GB peak VRAM, 0.039 tok/s, 7589 disk-I/O samples). The CPU-only-laptop block is preserved in `airllm_compatibility.json` for honesty.
 
 ## Final Milestone
 
@@ -54,6 +54,14 @@ Full detail: `reports/REQUIREMENTS_MATRIX.md`
     - TTFT: 14.29s (prefill, manual decode loop), TPOT: 387 ms/token, ITL range: 101–7701 ms
     - 12.5× slower decode than Q4_K_M (31 ms/token) — memory bandwidth bottleneck confirmed
     - I2 closed: decode stage concept connected to both FP16 and Q4_K_M real measurements
+
+20. AirLLM GPU run (D2 RESOLVED) — `results/raw/airllm_gpu_metrics.json` ✓
+    - Qwen/Qwen2.5-7B-Instruct layer-streamed on RTX 4060 Laptop GPU (CUDA 12.4), 2nd machine
+    - Peak VRAM 1.16 GB (7B on an 8 GB GPU), peak RAM 5.87 GB, 819 s / 32 tok = 0.039 tok/s
+    - Disk peak 2.90 GB/s, avg 636 MB/s across 7589 samples — direct evidence of layer paging
+    - Fixes: `layer_shards_saving_path` + `hf_token` kwargs in run_airllm.py; `transformers==4.45.2`
+      (newer drops the per-layer RoPE fallback AirLLM relies on); `input_ids.to(model.device)`
+    - Env (2nd machine): `C:\ai-envs\ai-agents-ex05`, Python 3.12, torch 2.5.1+cu124, airllm 2.11.0
 
 ---
 

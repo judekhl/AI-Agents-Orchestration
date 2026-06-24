@@ -67,6 +67,10 @@ Keep final responses under 25 lines unless more is requested. Format:
 
 Evidence: `results/raw/hardware_profile.json`
 
+**Second machine (AirLLM/D2 only):** NVIDIA GeForce RTX 4060 Laptop GPU, 8 GB VRAM, CUDA 12.4,
+Windows 11. Used solely for the AirLLM GPU run; baseline + quantization stay on the i5 laptop above.
+Evidence: `results/raw/airllm_gpu_metrics.json`.
+
 ---
 
 ## External Paths (outside OneDrive — mandatory)
@@ -90,7 +94,8 @@ Activate venv: `C:\ai-envs\ai-agents-ex05\Scripts\activate`
 | Role | Model | Reason |
 |---|---|---|
 | Warm-up | `Qwen/Qwen2.5-0.5B-Instruct` | ~1 GB, fits in RAM, proves pipeline |
-| Stress | `facebook/opt-6.7b` | ~14 GB FP16 > 8.22 GB RAM — OOM expected |
+| Stress (baseline OOM) | `facebook/opt-6.7b` | ~14 GB FP16 > 8.22 GB RAM — OOM expected |
+| **AirLLM (GPU)** | `Qwen/Qwen2.5-7B-Instruct` | multi-shard safetensors + index; supported by AirLLM's `AirLLMQWen2`. NOTE: `opt-6.7b` is NOT AirLLM-compatible (no `airllm_opt` class → falls back to Llama2 with `model.layers.*` naming, but OPT uses `model.decoder.layers.*` → 0 layers found). |
 | Quantized fallback | `bartowski/Qwen2.5-7B-Instruct-GGUF` Q4\_K\_M | ~4.4 GB, fits in RAM |
 
 Evidence: `results/raw/model_selection.json`
@@ -99,11 +104,16 @@ Evidence: `results/raw/model_selection.json`
 
 ## Package Compatibility Note
 
-- airllm 2.11.0 requires `optimum < 2.0` and `transformers < 4.49`
-- **Working pinned versions:** `transformers==4.48.3`, `optimum==1.27.0`
-- Do NOT `pip install --upgrade transformers` — it will break airllm import.
+- airllm 2.11.0 requires `optimum < 2.0` and `transformers < 4.49` (for import).
+- **CPU laptop (baseline/quant) pins:** `transformers==4.48.3`, `optimum==1.27.0`.
+- **AirLLM RUNTIME needs `transformers==4.45.2`** — 4.48.3 *imports* airllm fine but the
+  layer-by-layer forward crashes (`cannot unpack non-iterable NoneType`): transformers ≥ 4.46
+  dropped the per-layer RoPE fallback, and AirLLM 2.11.0 passes `position_ids` but not
+  `position_embeddings`. 4.45.2 keeps the fallback. Do NOT upgrade transformers past 4.45.x
+  in the AirLLM env.
+- GPU env (2nd machine): `C:\ai-envs\ai-agents-ex05`, Python 3.12, `torch 2.5.1+cu124`.
 
-Evidence: `results/raw/environment_setup.json`
+Evidence: `results/raw/environment_setup.json`, `results/raw/airllm_gpu_metrics.json`
 
 ---
 
@@ -118,17 +128,17 @@ Evidence: `results/raw/environment_setup.json`
 | `results/raw/model_selection.json` | ✓ |
 | Cache paths outside OneDrive | ✓ |
 | `results/raw/environment_setup.json` | ✓ |
-| Model weights downloaded | Partial (Qwen 0.5B ✓, OPT-6.7B 4/13.5 GB) |
+| Model weights downloaded | Qwen 0.5B ✓; Qwen2.5-7B ✓ (sharded for AirLLM on GPU machine) |
 | Warm-up baseline run | ✓ |
 | Stress baseline / OOM evidence | ✓ (TimeoutError — download stalled) |
-| AirLLM experiment | ✗ |
-| Quantization experiment | ✗ |
-| Graphs / summary table | ✗ |
-| Economic analysis | ✗ |
-| Original extension | ✗ |
-| Final README polish | ✗ |
+| AirLLM experiment | ✓ (GPU run — `results/raw/airllm_gpu_metrics.json`, 1.16 GB peak VRAM) |
+| Quantization experiment | ✓ (Q4_K_M + Q8_0) |
+| Graphs / summary table | ✓ |
+| Economic analysis | ✓ |
+| Original extension | ✓ (prompt-length scaling) |
+| Final README polish | ✓ |
 
-Requirement counts: **DONE 6 / IN_PROGRESS 17 / NOT_STARTED 51** (total 74)
+Requirement counts: **DONE 74 / IN_PROGRESS 0 / NOT_STARTED 0 / BLOCKED 0** (total 74)
 
 ---
 
