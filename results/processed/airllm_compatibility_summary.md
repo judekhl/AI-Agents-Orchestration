@@ -5,6 +5,24 @@
 
 ---
 
+> ## ✅ RESOLVED 2026-06-24 (see `results/raw/airllm_gpu_metrics.json`)
+>
+> This document records the **original** investigation on the primary i5-1135G7 laptop (no CUDA GPU).
+> AirLLM was later **run successfully** on a second machine with an NVIDIA RTX 4060 Laptop GPU:
+> `Qwen/Qwen2.5-7B-Instruct` layer-streamed at **1.16 GB peak VRAM**, 0.039 tok/s, 32 tokens.
+>
+> Two findings below were refined by the working run:
+> - **Model format:** AirLLM 2.11.0 accepts *either* `model.safetensors.index.json` *or*
+>   `pytorch_model.bin.index.json` (a multi-shard checkpoint). A single-file model (0.5B) has no
+>   index and cannot be sharded — which is the real reason 0.5B failed. The working target is the
+>   multi-shard `Qwen/Qwen2.5-7B-Instruct`. (`facebook/opt-6.7b` turned out to be unsupported for a
+>   different reason: AirLLM has no OPT class, so its `model.decoder.layers.*` naming is not found.)
+> - **GPU:** the only real hard blocker on the primary laptop. A CUDA GPU resolved it.
+> - Runtime also required `transformers==4.45.2` (newer drops the per-layer RoPE fallback AirLLM uses)
+>   and three small `run_airllm.py` fixes (`layer_shards_saving_path`, `hf_token`, `input_ids.to(device)`).
+
+---
+
 ## What Was Tested
 
 - `airllm` package import and `AutoModel` API
