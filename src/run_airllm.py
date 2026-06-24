@@ -114,6 +114,10 @@ def run_airllm(config: dict, output_path: str):
 
         inputs = tokenizer(prompt, return_tensors="pt")
         input_ids = inputs["input_ids"]
+        # AirLLM streams layers onto the model device; the generation loop (gather,
+        # cache, sampling) runs on input_ids' device. Keep them the same or PyTorch
+        # raises a cuda/cpu device-mismatch during the first decode step.
+        input_ids = input_ids.to(model.device)
         n_input_tokens = input_ids.shape[-1]
 
         print(f"Running AirLLM inference (max_new_tokens={max_new_tokens})...")
