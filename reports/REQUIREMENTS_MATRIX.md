@@ -1,7 +1,7 @@
 # REQUIREMENTS MATRIX — Assignment 05
 # Running a Massive LLM Locally: AirLLM, Quantization and Performance Benchmarking
 # Target grade: 90+
-# Last updated: 2026-06-23 (AirLLM compatibility check complete — BLOCKED)
+# Last updated: 2026-06-24 (AirLLM D2 measured on GPU — 74/74 DONE, 0 BLOCKED)
 # Rule: Status stays NOT_STARTED until evidence file exists in the repo. DONE requires real data.
 
 ---
@@ -66,7 +66,7 @@
 | ID | Exact Requirement | Source Section | Required Evidence / File | Status | How We Will Satisfy It | Risk If Missing | Grade Impact |
 |---|---|---|---|---|---|---|---|
 | D1 | AirLLM integration attempted | AirLLM section | `scripts/airllm_run.py` exists | `DONE` | `src/run_airllm.py` exists using `airllm.AutoModel`, configurable shard path via JSON config. Compatibility run attempted 2026-06-23 — `airllm.AutoModel` imports OK, `AirLLMQWen2` auto-detected. Evidence: `results/raw/airllm_compatibility.json` ✓ | AirLLM section entirely missing | Critical |
-| D2 | AirLLM result measured if it runs | AirLLM section | `results/raw/airllm_metrics.json` with same metric fields as baseline | `BLOCKED` | AirLLM cannot run: (1) no CUDA GPU — device defaults to cuda:0; (2) tiny models use single safetensors (no index file); large OPT-6.7B needs full 13.5 GB download (stalled). Evidence: `results/raw/airllm_compatibility.json` ✓ | No comparison data for AirLLM | Critical |
+| D2 | AirLLM result measured if it runs | AirLLM section | `results/raw/airllm_metrics.json` with same metric fields as baseline | `DONE` | AirLLM ran successfully on a CUDA GPU (RTX 4060 Laptop, second machine). Qwen/Qwen2.5-7B-Instruct layer-streamed, `max_new_tokens=32`: peak VRAM 1.16 GB, peak RAM 5.87 GB, 819 s / 32 tok = 0.039 tok/s, disk peak 2.90 GB/s over 7589 samples, coherent output. Same metric fields as baseline (TTFT, throughput, peak RAM/VRAM, runtime). Required three fixes: `layer_shards_saving_path` kwarg, `hf_token` kwarg, and `transformers==4.45.2` (RoPE fallback). Evidence: `results/raw/airllm_gpu_metrics.json` ✓ (earlier CPU-only-laptop block kept in `results/raw/airllm_compatibility.json`) | No comparison data for AirLLM | Critical |
 | D3 | If AirLLM fails, failure documented as negative result with logs and fallback | AirLLM section | `results/raw/airllm_failure.txt` with full error log + README section explaining what failed and why, + alternative approach taken | `DONE` | Failure documented in `results/raw/airllm_compatibility.json` ✓ and `results/processed/airllm_compatibility_summary.md` ✓. README Section 5 updated 2026-06-23: both blockers explained, actual error message included, quantization named as alternative. | Looks like work was skipped rather than failing honestly | High |
 | D4 | Layer-sharding / disk paging / I/O behavior discussed | AirLLM section | README section "AirLLM: How Layer Loading Works" explicitly referencing paging, virtual memory, disk I/O concepts from lecture | `DONE` | README Section 5 "How AirLLM Works" covers layer-by-layer disk loading, analogy to OS demand paging, RAM ceiling reduction, TTFT penalty from disk reads, and deliberate vs uncontrolled swap. Evidence: README.md Section 5 ✓ | Conceptual analysis missing | High |
 | D5 | AirLLM cache/shard path explicitly configured and documented | AirLLM section | In `scripts/airllm_run.py`, `cache_dir` / shard path is set to a configurable path (not hardcoded user path); documented in README | `DONE` | `src/run_airllm.py` reads `airllm_shard_dir` from `experiments/configs/default_config.json` (no hardcoded path). README Section 5 documents the path and override mechanism (`--config`). Evidence: `experiments/configs/default_config.json` + README.md Section 5 ✓ | Grader cannot reproduce without knowing shard path; also exposes local path | Medium |
@@ -177,14 +177,14 @@
 
 ## SUMMARY DASHBOARD
 
-Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 estimated)
+Last updated: 2026-06-24 (AirLLM D2 measured on GPU — 74/74 DONE, 93–97/100 estimated)
 
 | Section | Total Requirements | NOT_STARTED | IN_PROGRESS | DONE | BLOCKED | Critical Items |
 |---|---|---|---|---|---|---|
 | A — Repository | 7 | 0 | 0 | 7 | 0 | All DONE |
 | B — Hardware | 5 | 0 | 0 | 5 | 0 | All DONE |
 | C — Baseline | 4 | 0 | 0 | 4 | 0 | All DONE |
-| D — AirLLM | 5 | 0 | 0 | 4 | 1 | D2 (BLOCKED — no GPU + model format mismatch) |
+| D — AirLLM | 5 | 0 | 0 | 5 | 0 | All DONE — D2 measured on GPU (1.16 GB peak VRAM) |
 | E — Quantization | 3 | 0 | 0 | 3 | 0 | All DONE |
 | F — Metrics | 8 | 0 | 0 | 8 | 0 | All DONE |
 | G — Graphs | 9 | 0 | 0 | 9 | 0 | All DONE |
@@ -192,7 +192,7 @@ Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 e
 | I — Concepts | 13 | 0 | 0 | 13 | 0 | All DONE — I2: FP16 TPOT 387 ms/token measured |
 | J — Extension | 3 | 0 | 0 | 3 | 0 | All DONE |
 | K — Engineering | 8 | 0 | 0 | 8 | 0 | All DONE |
-| **TOTAL** | **74** | **0** | **0** | **73** | **1** | **—** |
+| **TOTAL** | **74** | **0** | **0** | **74** | **0** | **—** |
 
 ---
 
@@ -220,25 +220,26 @@ Last updated: 2026-06-24 (FP16 streaming TPOT measured — 73/74 DONE, 90+/100 e
 
 ---
 
-## CURRENT STATUS: NOT 90+ READY
+## CURRENT STATUS: COMPLETE — 74 / 74 DONE
 
-**DONE: 51 / 74 requirements** (A1, A7, B1, B2, B4, B5, D1, D3, D4, D5, E1, E2, E3, F1, F2, F3, F4, F5, F6, F7, G1, G2, G3, G4, G5, G6, G7, G8, H1–H7, H9, I1, I3, I4, I5–I13, J1, J2, J3, K5, K8)
-**IN_PROGRESS: 19 / 74 requirements** (A2–A6, B3, C1–C4, F8, I2, K1–K4, K7)
-**NOT_STARTED: 3 / 74 requirements** (H8, K6, G9)
-**BLOCKED: 1 / 74 requirements** (D2 — AirLLM cannot run: no GPU + model format constraint)
+**DONE: 74 / 74 requirements** — all sections A–K satisfied with real measured evidence.
+**IN_PROGRESS: 0 / 74**
+**NOT_STARTED: 0 / 74**
+**BLOCKED: 0 / 74** (D2 was the last blocker; resolved by the GPU run below)
 
-Hardware profiled: i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
+Hardware (primary): i5-1135G7, 4P/8L cores, 8.22 GB RAM, no GPU, NVMe SSD.
+Hardware (AirLLM run, second machine): NVIDIA RTX 4060 Laptop GPU, 8 GB VRAM, CUDA 12.4.
 Warm-up baseline: Qwen2.5-0.5B — 6.20 tok/s, 2.73 GB peak RAM, SUCCESS.
-Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load.
-AirLLM: BLOCKED — no CUDA GPU; small models lack sharded format; large model download stalled. Documented as negative result.
+Stress baseline: OPT-6.7B — TimeoutError after 1200s; download stalled at 4/13.5 GB; OOM expected on load (documented negative result).
+AirLLM: SUCCESS — Qwen2.5-7B layer-streamed on GPU, 1.16 GB peak VRAM, 5.87 GB peak RAM, 0.039 tok/s, disk peak 2.90 GB/s (7589 samples). Evidence: `results/raw/airllm_gpu_metrics.json`.
 Q4_K_M quantization: Qwen2.5-0.5B GGUF Q4_K_M — **26.24 tok/s, 0.55 GB RAM** — SUCCESS. vs FP16 baseline: +323% throughput, −80% RAM.
 Graphs: 6 figures generated in `figures/` ✓; summary_table.csv ✓; economic_analysis.json ✓.
 Economic analysis: break-even ~261K req/month (hardware+electricity). Full analysis in Section 8.
-Self-assessment: ~65/100, written in README Section 12.
+Self-assessment: 93–97/100, written in README Section 12.
 
-**Estimated ~83/100.** Current state:
+**Estimated 93–97/100.** Current state:
 - Extension J1–J3: DONE — prompt-length scaling experiment, real streaming TPOT
 - E1/E2/E3: DONE — Q8_0 (17.56 tok/s, 0.58 GB) + Q4_K_M (26.24 tok/s, 0.55 GB) + FP16 baseline; three-level comparison
 - F2/G3/I4: DONE — real TPOT 31.0 ms/token via streaming
-- AirLLM: BLOCKED (documented — D3 satisfied)
-- Remaining gaps: F8 (quality scoring), screenshots (A5, explained), baseline TPOT
+- AirLLM (D2): DONE — real GPU run, 1.16 GB peak VRAM (RTX 4060); D1/D3/D4/D5 also satisfied
+- Remaining gaps: none blocking — all 74 requirements DONE with evidence
