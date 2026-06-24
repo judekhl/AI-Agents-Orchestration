@@ -53,7 +53,7 @@ def run_airllm(config: dict, output_path: str):
     try:
         from airllm import AutoModel as AirLLMAutoModel
     except ImportError as e:
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
+        save_failure(e, output_path.replace("_metrics.json", "_failure.json"),
                      scenario="airllm",
                      context="airllm package not installed — run: pip install airllm")
         print(f"IMPORT ERROR: {e}")
@@ -63,9 +63,22 @@ def run_airllm(config: dict, output_path: str):
     try:
         from transformers import AutoTokenizer
     except ImportError as e:
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
+        save_failure(e, output_path.replace("_metrics.json", "_failure.json"),
                      scenario="airllm", context="transformers not installed")
         sys.exit(1)
+
+    try:
+        import torch
+    except ImportError as e:
+        save_failure(e, output_path.replace("_metrics.json", "_failure.json"),
+                     scenario="airllm", context="torch not installed")
+        sys.exit(1)
+
+    cuda_available = torch.cuda.is_available()
+    gpu_name = torch.cuda.get_device_name(0) if cuda_available else None
+    cuda_version = torch.version.cuda if cuda_available else None
+    print(f"Device:     {'GPU ' + gpu_name + ' (CUDA ' + str(cuda_version) + ')' if cuda_available else 'CPU only'}")
+    print()
 
     ram_sampler = RamSampler(interval=0.5)
     disk_sampler = DiskIoSampler(interval=0.1)
@@ -81,13 +94,19 @@ def run_airllm(config: dict, output_path: str):
         print("Initializing AirLLM model (may shard on first run — this is slow)...")
         ram_sampler.start()
         disk_sampler.start()
+        if cuda_available:
+            torch.cuda.reset_peak_memory_stats()
         load_start = time.perf_counter()
 
-        # AirLLM API: compression_ratio sets layer batch size; lower = less RAM
+        # AirLLM API: per-layer shard files are written to layer_shards_saving_path.
+        # NOTE: AirLLM does NOT accept `cache_dir` here (that is a transformers arg) —
+        # passing it raises TypeError before the model loads. Use layer_shards_saving_path.
+        # The constructor param is `hf_token` (not `token`); only pass it when set so the
+        # public-model path doesn't trip AutoConfig's token branch.
         model = AirLLMAutoModel.from_pretrained(
             model_id,
-            cache_dir=shard_dir,
-            token=hf_token,
+            layer_shards_saving_path=shard_dir,
+            **({"hf_token": hf_token} if hf_token else {}),
         )
 
         load_time = time.perf_counter() - load_start
@@ -110,6 +129,7 @@ def run_airllm(config: dict, output_path: str):
         inference_end = time.perf_counter()
         disk_io_samples = disk_sampler.stop()
         peak_ram = ram_sampler.stop()
+        peak_vram = (torch.cuda.max_memory_allocated() / 1e9) if cuda_available else None
 
         total_runtime = inference_end - inference_start
         generated_tokens = output.shape[-1] - n_input_tokens
@@ -121,7 +141,8 @@ def run_airllm(config: dict, output_path: str):
             total_output_tokens=generated_tokens,
             total_runtime_seconds=total_runtime,
             peak_ram_gb=peak_ram,
-            gpu_available=False,
+            gpu_available=cuda_available,
+            peak_vram_gb=round(peak_vram, 3) if peak_vram is not None else None,
         )
         metrics["model_load_time_seconds"] = round(load_time, 3)
         metrics["n_input_tokens"] = n_input_tokens
@@ -143,6 +164,9 @@ def run_airllm(config: dict, output_path: str):
             "output_quality_notes": "TODO: manual assessment after experiment",
             "disk_io_samples": disk_io_samples,
             "shard_dir": str(shard_dir),
+            "gpu_name": gpu_name,
+            "cuda_version": cuda_version,
+            "device": "cuda:0" if cuda_available else "cpu",
         }
 
         save_metrics(metrics, output_path, scenario="airllm", model_id=model_id, extra=extra)
@@ -152,13 +176,14 @@ def run_airllm(config: dict, output_path: str):
         print(f"TPOT:               {metrics['tpot_ms']} ms/token")
         print(f"Throughput:         {metrics['throughput_tokens_per_sec']} tok/s")
         print(f"Peak RAM:           {metrics['peak_ram_gb']:.2f} GB")
+        print(f"Peak VRAM:          {f'{peak_vram:.2f} GB' if peak_vram is not None else 'N/A'}")
         print(f"Disk peak read:     {metrics.get('disk_io_peak_read_mb_s', 'N/A')} MB/s")
         print(f"Output tokens:      {generated_tokens}")
 
     except MemoryError as e:
         disk_sampler.stop()
         ram_sampler.stop()
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
+        save_failure(e, output_path.replace("_metrics.json", "_failure.json"),
                      scenario="airllm", context="MemoryError during AirLLM inference")
         print(f"\nOUT OF MEMORY: {e}")
         sys.exit(2)
@@ -166,7 +191,7 @@ def run_airllm(config: dict, output_path: str):
     except Exception as e:
         disk_sampler.stop()
         ram_sampler.stop()
-        save_failure(e, output_path.replace("_metrics.json", "_failure.txt"),
+        save_failure(e, output_path.replace("_metrics.json", "_failure.json"),
                      scenario="airllm", context=str(e))
         print(f"\nFAILED: {e}")
         sys.exit(3)
